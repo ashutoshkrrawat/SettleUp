@@ -2,12 +2,15 @@ require('dotenv').config(); //environment varaibles loading
 const express = require('express')
 const mongoose = require('mongoose')
 const {connectDB} = require('./config/db')
+const authRoutes = require('./routes/auth');
 
 //connecting database
 connectDB()
 
 const app = express()
 app.use(express.json());
+
+app.use('/api/auth',authRoutes)
 
 app.get('/home', (req, res)=>{
     res.json({status: "OK", message: "servere is running"});
