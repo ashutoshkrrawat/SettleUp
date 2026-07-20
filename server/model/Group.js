@@ -33,7 +33,16 @@ const GroupSchema = new mongoose.Schema({
         default: 0 // Starts at 0. Positive = owed money, Negative = owes money
       }
     }
-  ]
+  ],
+  inviteCode: {
+    type: String,
+    unique: true,
+    default: () => require('crypto').randomBytes(4).toString('hex') // e.g. "a1b2c3d4"
+  },
+  inviteExpiresAt: {
+    type: Date,
+    default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) // Expires in 24 hours by default
+  }
 }, {timestamps: true});
 
 module.exports = mongoose.model('Group', GroupSchema);
