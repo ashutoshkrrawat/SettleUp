@@ -26,6 +26,8 @@ A real-time, multi-user expense-splitting web app.
 
 ## 📊 Current Progress & Status
 
+*   **Documentation**: Created [README.md](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/README.md) describing the splitting modes (including the dynamic EXACT total sum approach) and the greedy transaction-minimizing algorithm.
+
 ### Phase 1: Authentication & JWT Setup ── ✅ COMPLETE & VERIFIED
 Completed and tested JWT register, login, and protected me endpoints.
 
@@ -36,20 +38,20 @@ Completed and tested JWT register, login, and protected me endpoints.
 
 ## 🎯 Next Steps (Where to Start Tomorrow)
 
-### 1. Task 1: Create `server/routes/expense.js` & Mount in `server/server.js`
-Develop endpoints for expense splitting:
-*   `POST /api/expenses` (Equal, Percent, and Exact split calculations).
-*   `GET /api/expenses/group/:groupId` (Fetch group expenses).
-*   `DELETE /api/expenses/:id` (Revert group balances).
+### 1. Task 1: Create Layered Architecture for Expense Splitting
+To keep this production-grade, we will implement Route-Controller-Service files:
+*   [NEW] `server/services/expenseService.js`: Implements split logic (EQUAL, PERCENT, EXACT) and MongoDB balance updates.
+*   [NEW] `server/controllers/expenseController.js`: Translates request/response HTTP actions.
+*   [NEW] `server/routes/expense.js` & Mount in `server/server.js`: Connects protect middleware and paths.
 
-### 2. Task 2: Implement Settle-Up Engine in `server/routes/group.js`
-Create a `/settlements` endpoint executing the greedy transaction-minimizing algorithm.
+### 2. Task 2: Implement Settle-Up Engine
+Create a `/settlements` endpoint in `group` routes utilizing the greedy simplified settlements algorithm.
 
-### 3. Task 3: Test Expense & Settlement Routes in Postman
+### 3. Task 3: Test Layered Expense Routes in Postman
 
 ---
 
 ## 🗺️ Remaining Road Map
-*   **Phase 3**: Core Expense Splitting & Settle-Up Engine.
+*   **Phase 3**: Core Expense Splitting & Settle-Up Engine (Route-Controller-Service layered implementation).
 *   **Phase 4**: Socket.io real-time room sync.
 *   **Phase 5**: BullMQ/Redis async notification setup.
