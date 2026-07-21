@@ -19,12 +19,12 @@ const calculateSplits = (amount, splitType, splits) => {
       totalCalculated += itemAmount;
       calculatedSplits.push({ user: s.user, amount: Math.round(itemAmount * 100) / 100 });
     }
-    
+
     finalAmount = Math.round(totalCalculated * 100) / 100;
     if (finalAmount <= 0) {
       throw new Error('Total calculated expense amount must be greater than 0');
     }
-    
+
   } else if (splitType === 'EQUAL') {
     if (!amount || amount <= 0) {
       throw new Error('Amount must be greater than 0 for EQUAL split');
@@ -40,7 +40,7 @@ const calculateSplits = (amount, splitType, splits) => {
       }
       return { user: userId, amount: Math.round(share * 100) / 100 };
     });
-    
+
   } else if (splitType === 'PERCENT') {
     if (!amount || amount <= 0) {
       throw new Error('Amount must be greater than 0 for PERCENT split');
@@ -84,13 +84,21 @@ const createExpense = async ({ groupId, description, amount, splitType, paidBy, 
     throw new Error('Group not found');
   }
 
-  const isMember = group.members.includes(userId);
-  const isPayerMember = group.members.includes(paidBy);
+  const isMember = group.members.some(m => m.toString() === userId.toString());
+  const isPayerMember = group.members.some(m => m.toString() === paidBy.toString());
   if (!isMember || !isPayerMember) {
     throw new Error('Authorized group membership required');
   }
 
   const { calculatedSplits, finalAmount } = calculateSplits(amount, splitType, splits);
+
+  // Verify all split participants are members of the group
+  const allParticipantsAreMembers = calculatedSplits.every(s =>
+    group.members.some(m => m.toString() === s.user.toString())
+  );
+  if (!allParticipantsAreMembers) {
+    throw new Error('All split participants must be members of the group');
+  }
 
   // 1. Create expense in database
   const expense = await Expense.create({
@@ -134,7 +142,7 @@ const getGroupExpenses = async (groupId, userId) => {
     throw new Error('Group not found');
   }
 
-  const isMember = group.members.includes(userId);
+  const isMember = group.members.some(m => m.toString() === userId.toString());
   if (!isMember) {
     throw new Error('Not authorized to view group expenses');
   }
