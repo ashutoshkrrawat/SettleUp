@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 const {connectDB} = require('./config/db')
 const authRoutes = require('./routes/auth');
 const groupRoutes = require('./routes/group');
-
+const expenseRoutes = require('./routes/expense');
 //connecting database
 connectDB()
 
@@ -13,6 +13,7 @@ app.use(express.json());
 
 app.use('/api/auth',authRoutes)
 app.use('/api/groups',groupRoutes)
+app.use('/api/expenses', expenseRoutes)
 
 app.get('/home', (req, res)=>{
     res.json({status: "OK", message: "servere is running"});

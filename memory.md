@@ -36,18 +36,18 @@ Completed and tested JWT register, login, and protected me endpoints.
 
 ---
 
-## 🎯 Next Steps (Where to Start Tomorrow)
+### Phase 3: Core Expense Splitting & Settle-Up Engine ── ✅ IMPLEMENTATION COMPLETE
+*   [x] Refactored **Auth**, **Group**, and **Expense** modules into full **Route-Controller-Service** layered architecture:
+    *   `services/`: [authService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/authService.js), [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/groupService.js), [expenseService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/expenseService.js)
+    *   `controllers/`: [authController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/authController.js), [groupController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/groupController.js), [expenseController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/expenseController.js)
+    *   `routes/`: [auth.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/auth.js), [group.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/group.js), [expense.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/expense.js) mounted in [server.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/server.js).
+*   [x] Implemented `GET /api/groups/:id/settlements` greedy debt minimization algorithm.
 
-### 1. Task 1: Create Layered Architecture for Expense Splitting
-To keep this production-grade, we will implement Route-Controller-Service files:
-*   [NEW] `server/services/expenseService.js`: Implements split logic (EQUAL, PERCENT, EXACT) and MongoDB balance updates.
-*   [NEW] `server/controllers/expenseController.js`: Translates request/response HTTP actions.
-*   [NEW] `server/routes/expense.js` & Mount in `server/server.js`: Connects protect middleware and paths.
+---
 
-### 2. Task 2: Implement Settle-Up Engine
-Create a `/settlements` endpoint in `group` routes utilizing the greedy simplified settlements algorithm.
-
-### 3. Task 3: Test Layered Expense Routes in Postman
+## 🎯 Next Steps
+*   **Task 1**: Test Phase 3 Endpoints (Expenses & Settlement engine) in Postman.
+*   **Phase 4**: Socket.io real-time room sync.
 
 ---
 
