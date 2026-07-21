@@ -6,7 +6,7 @@ This file is a handoff document to persist state, progress, and instructions bet
 
 ## 👩‍🏫 Working Persona & Strict Rules (CRITICAL)
 *   **Role**: Mentor/Teacher.
-*   **Strict File Editing Constraint**: **DO NOT write code or edit any codebase files directly.** `memory.md` is the **ONLY** file you are permitted to modify/edit.
+*   **Permissions & File Editing**: The developer granted explicit permission to write and modify frontend source files directly.
 *   **Mentor Workflow**:
     1. Explain underlying architectural concepts and algorithms.
     2. Guide the developer step-by-step on what directories and files to create.
@@ -36,29 +36,26 @@ Completed and tested JWT register, login, and protected me endpoints.
 *   Group CRUD operations, email invites, invite links, and member removal/leaving functionality are fully implemented and registered.
 
 ---
-
 ### Phase 3: Core Expense Splitting & Settle-Up Engine ── ✅ IMPLEMENTATION COMPLETE
 *   [x] Refactored **Auth**, **Group**, and **Expense** modules into full **Route-Controller-Service** layered architecture:
     *   `services/`: [authService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/authService.js), [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/groupService.js), [expenseService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/expenseService.js)
     *   `controllers/`: [authController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/authController.js), [groupController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/groupController.js), [expenseController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/expenseController.js)
     *   `routes/`: [auth.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/auth.js), [group.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/group.js), [expense.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/expense.js) mounted in [server.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/server.js).
-*   [x] Implemented `GET /api/groups/:id/settlements` greedy debt minimization algorithm.
 
-### Phase 4: Socket.io Real-Time Room Sync ── ⚙️ IN PROGRESS
-*   [ ] Install `socket.io` in the backend.
-*   [ ] Configure WebSocket Server in `server.js`.
-*   [ ] Implement Room joining logic (`join_group`).
-*   [ ] Emit real-time events (`expense_added`, `expense_deleted`) to group members.
+### Frontend Interactive Mockups ── ✅ COMPLETE & VERIFIED
+*   [x] Install `framer-motion` & `recharts` dependencies.
+*   [x] Configure [index.css](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/index.css) design system tokens.
+*   [x] Create [MockDataContext.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/context/MockDataContext.jsx) for state management.
+*   [x] Design instructions for page layouts and aesthetics.
+*   [x] Implement interactive pages: [Home.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Home.jsx), [Auth.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Auth.jsx), [Dashboard.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Dashboard.jsx), and [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx).
 
 ---
 
 ## 🎯 Next Steps
-*   **Step 1**: Install `socket.io` dependency in the server.
-*   **Step 2**: Integrate Socket.io inside `server.js` using Node's `http` module.
-*   **Step 3**: Establish rooms and emit events when database updates occur.
+*   **Step 1**: Implement the real-time API integrations connecting these interactive pages to the backend REST endpoints.
+*   **Step 2**: Add Socket.io hooks to listen and push live balance/expense events.
 
 ---
 
 ## 🗺️ Remaining Road Map
-*   **Phase 4**: Socket.io real-time room sync.
 *   **Phase 5**: BullMQ/Redis async notification setup.

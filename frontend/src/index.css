@@ -1,7 +1,169 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-@variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --radius: 1rem;
+  /* Light Mode (Subtle Cream & Gold) */
+  --background: #e5e2da;
+  --foreground: #1f1f1f;
+  --card: #ffffff;
+  --card-foreground: #1f1f1f;
+  --popover: #ffffff;
+  --popover-foreground: #1f1f1f;
+  --primary: #F3C84C;
+  --primary-hover: #d29402;
+  --primary-foreground: #1f1f1f;
+  --secondary: #f3efe5;
+  --secondary-foreground: #1f1f1f;
+  --muted: #dbd7cb;
+  --muted-foreground: #7a7a7a;
+  --accent: #f3efe5;
+  --accent-foreground: #1f1f1f;
+  --destructive: #ef4444;
+  --border: #dbd7cb;
+  --input: #ffffff;
+  --ring: #F3C84C;
+}
+
+.dark {
+  /* Dark Mode (MonkeyType Terminal) */
+  --background: #191a1b;
+  --foreground: #e8dcc8;
+  --card: #1e1f20;
+  --card-foreground: #e8dcc8;
+  --popover: #1e1f20;
+  --popover-foreground: #e8dcc8;
+  --primary: #79a617;
+  --primary-hover: #96cc20;
+  --primary-foreground: #191a1b;
+  --secondary: #242526;
+  --secondary-foreground: #e8dcc8;
+  --muted: #2c2d2e;
+  --muted-foreground: #7a7b7d;
+  --accent: #242526;
+  --accent-foreground: #e8dcc8;
+  --destructive: #ef4444;
+  --border: #2c2d2e;
+  --input: #1e1f20;
+  --ring: #79a617;
+}
+
+/* Typography Ceiling Rules */
+* {
+  font-weight: 400 !important;
+}
+body, button, input, select, textarea {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300 !important;
+}
+h1, h2, h3, h4, .font-bold {
+  font-weight: 600 !important;
+}
+.font-black {
+  font-weight: 800 !important;
+}
 
 body {
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Glow Backdrop Blur */
+body::before {
+  content: "";
+  position: fixed;
+  top: -250px;
+  right: -250px;
+  width: 950px;
+  height: 950px;
+  border-radius: 999px;
+  background: radial-gradient(circle,
+      rgba(243, 200, 76, 0.15) 0%,
+      rgba(243, 200, 76, 0.05) 30%,
+      transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+  transition: background 0.4s ease;
+}
+
+.dark body::before {
+  background: radial-gradient(circle,
+      rgba(121, 166, 23, 0.08) 0%,
+      rgba(121, 166, 23, 0.03) 35%,
+      transparent 65%);
+}
+
+/* High-Attention Shimmer Button Animation */
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  40%, 100% { transform: translateX(150%) skewX(-20deg); }
+}
+
+.premium-btn-attention {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.premium-btn-attention::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  ) !important;
+  transform: translateX(-150%) skewX(-20deg);
+  animation: shimmer-sweep 4s infinite ease-in-out !important;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
 }
