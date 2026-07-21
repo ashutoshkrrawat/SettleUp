@@ -1,4 +1,5 @@
 const expenseService = require('../services/expenseService');
+const { getIO } = require('../config/socket');
 
 const createExpense = async (req, res) => {
   try {
@@ -13,6 +14,14 @@ const createExpense = async (req, res) => {
       splits,
       userId: req.user._id
     });
+
+    // 🔌 Real-time: Broadcast to group room that a new expense has been created
+    try {
+      const io = getIO();
+      io.to(group).emit('expense_created', expense);
+    } catch (socketError) {
+      console.warn('Real-time socket emit failed:', socketError.message);
+    }
 
     res.status(201).json(expense);
   } catch (error) {
@@ -36,6 +45,18 @@ const getGroupExpenses = async (req, res) => {
 const deleteExpense = async (req, res) => {
   try {
     const result = await expenseService.deleteExpense(req.params.id, req.user._id);
+
+    // 🔌 Real-time: Broadcast to group room that this expense has been deleted
+    try {
+      const io = getIO();
+      io.to(result.groupId.toString()).emit('expense_deleted', {
+        expenseId: req.params.id,
+        groupId: result.groupId
+      });
+    } catch (socketError) {
+      console.warn('Real-time socket emit failed:', socketError.message);
+    }
+
     res.json(result);
   } catch (error) {
     console.error('Delete expense controller error:', error);

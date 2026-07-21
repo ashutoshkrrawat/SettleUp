@@ -191,7 +191,10 @@ const deleteExpense = async (expenseId, userId) => {
 
   await group.save();
   await expense.deleteOne();
-  return { message: 'Expense deleted and group balances updated' };
+  return { 
+      message: 'Expense deleted and group balances updated',
+      groupId: group._id 
+    };
 };
 
 module.exports = {
