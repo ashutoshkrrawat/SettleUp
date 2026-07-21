@@ -44,15 +44,21 @@ Completed and tested JWT register, login, and protected me endpoints.
     *   `routes/`: [auth.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/auth.js), [group.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/group.js), [expense.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/expense.js) mounted in [server.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/server.js).
 *   [x] Implemented `GET /api/groups/:id/settlements` greedy debt minimization algorithm.
 
+### Phase 4: Socket.io Real-Time Room Sync ── ⚙️ IN PROGRESS
+*   [ ] Install `socket.io` in the backend.
+*   [ ] Configure WebSocket Server in `server.js`.
+*   [ ] Implement Room joining logic (`join_group`).
+*   [ ] Emit real-time events (`expense_added`, `expense_deleted`) to group members.
+
 ---
 
 ## 🎯 Next Steps
-*   **Task 1**: Test Phase 3 Endpoints (Expenses & Settlement engine) in Postman.
-*   **Phase 4**: Socket.io real-time room sync.
+*   **Step 1**: Install `socket.io` dependency in the server.
+*   **Step 2**: Integrate Socket.io inside `server.js` using Node's `http` module.
+*   **Step 3**: Establish rooms and emit events when database updates occur.
 
 ---
 
 ## 🗺️ Remaining Road Map
-*   **Phase 3**: Core Expense Splitting & Settle-Up Engine (Route-Controller-Service layered implementation).
 *   **Phase 4**: Socket.io real-time room sync.
 *   **Phase 5**: BullMQ/Redis async notification setup.
