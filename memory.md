@@ -49,11 +49,20 @@ Completed and tested JWT register, login, and protected me endpoints.
 *   [x] Design instructions for page layouts and aesthetics.
 *   [x] Implement interactive pages: [Home.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Home.jsx), [Auth.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Auth.jsx), [Dashboard.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Dashboard.jsx), and [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx).
 
+### Phase 4: Frontend-Backend Connection (In Progress) ── 🚀 IN PROGRESS
+*   [x] Configure Vite proxy in [vite.config.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/vite.config.js) to route `/api` calls to `http://localhost:5000`.
+*   [x] Create production-grade Axios client [api.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/utils/api.js) with JWT request headers interceptor.
+*   [x] Implement modular [authService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/authService.js) using single default export.
+*   [x] Implement modular [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/groupService.js) using single default export.
+*   [ ] Implement remaining service modules: `expenseService.js`.
+*   [ ] Connect state provider to services and configure Socket.io client.
+
 ---
 
 ## 🎯 Next Steps
-*   **Step 1**: Implement the real-time API integrations connecting these interactive pages to the backend REST endpoints.
-*   **Step 2**: Add Socket.io hooks to listen and push live balance/expense events.
+*   **Step 1**: Implement `groupService.js` and `expenseService.js` inside the services folder.
+*   **Step 2**: Refactor Auth context provider to consume `authService.js`.
+*   **Step 3**: Connect socket client listeners.
 
 ---
 
