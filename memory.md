@@ -54,8 +54,8 @@ Completed and tested JWT register, login, and protected me endpoints.
 *   [x] Create production-grade Axios client [api.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/utils/api.js) with JWT request headers interceptor.
 *   [x] Implement modular [authService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/authService.js) using single default export.
 *   [x] Implement modular [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/groupService.js) using single default export.
-*   [ ] Implement remaining service modules: `expenseService.js`.
-*   [ ] Connect state provider to services and configure Socket.io client.
+*   [x] Implement modular [expenseService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/expenseService.js) using single default export.
+*   [x] Refactor and rename state provider to [DataContext.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/context/DataContext.jsx) and configure Socket.io client.
 
 ---
 

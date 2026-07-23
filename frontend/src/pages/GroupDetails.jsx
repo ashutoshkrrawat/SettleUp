@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useMockData } from '../context/MockDataContext';
+import { useData } from '../context/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -32,7 +32,7 @@ export default function GroupDetails() {
     addExpense,
     deleteExpense,
     getSettlements
-  } = useMockData();
+  } = useData();
 
   const [activeTab, setActiveTab] = useState('expenses'); // 'expenses', 'settle', 'members'
   const [copied, setCopied] = useState(false);

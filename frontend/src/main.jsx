@@ -2,12 +2,12 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
-import { MockDataProvider } from './context/MockDataContext.jsx'
+import { DataProvider } from './context/DataContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <MockDataProvider>
+    <DataProvider>
       <App />
-    </MockDataProvider>
+    </DataProvider>
   </StrictMode>,
 )

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMockData } from '../context/MockDataContext';
+import { useData } from '../context/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DollarSign,
@@ -28,9 +28,9 @@ export default function Dashboard() {
     expenses,
     theme,
     toggleTheme,
-    logoutMockUser,
+    logoutUser,
     createGroup
-  } = useMockData();
+  } = useData();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
@@ -83,7 +83,7 @@ export default function Dashboard() {
   };
 
   const handleLogout = () => {
-    logoutMockUser();
+    logoutUser();
     toast.success('Logged out successfully');
     navigate('/');
   };

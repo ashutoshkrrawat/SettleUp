@@ -1,11 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMockData } from '../context/MockDataContext';
+import { useData } from '../context/DataContext';
 import { Sparkles, ArrowRight, DollarSign, Users, Activity, CheckCircle, Moon, Sun } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useMockData();
+  const { theme, toggleTheme } = useData();
 
   return (
     <div className="relative min-height-screen flex flex-col justify-between overflow-x-hidden">

@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMockData } from '../context/MockDataContext';
+import { useData } from '../context/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DollarSign, Moon, Sun, ArrowLeft, Mail, Lock, User, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { theme, toggleTheme, loginMockUser } = useMockData();
+  const { theme, toggleTheme, loginUser, registerUser } = useData();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password || (!isLogin && !name)) {
       toast.error('Please fill in all fields');
@@ -21,11 +21,16 @@ export default function Auth() {
     }
 
     try {
-      const user = loginMockUser(email);
+      let user;
+      if (isLogin) {
+        user = await loginUser(email, password);
+      } else {
+        user = await registerUser(name, email, password);
+      }
       toast.success(`Welcome, ${user.name}!`);
       navigate('/dashboard');
     } catch (error) {
-      toast.error('Authentication failed');
+      toast.error(error.response?.data?.message || error.message || 'Authentication failed');
     }
   };
 
@@ -60,7 +65,7 @@ export default function Auth() {
         <div className="w-full max-w-md bg-card border border-border/45 p-8 rounded-3xl shadow-lg backdrop-blur-md relative overflow-hidden">
           {/* Subtle Accent Glow Inside Card */}
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
-          
+
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs text-primary-foreground font-bold mb-4">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
