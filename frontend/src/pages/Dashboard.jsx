@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,14 +29,30 @@ export default function Dashboard() {
     theme,
     toggleTheme,
     logoutUser,
-    createGroup
+    createGroup,
+    fetchGroups,
+    loading
   } = useData();
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchGroups();
+    }
+  }, [currentUser]);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDesc, setNewGroupDesc] = useState('');
 
   // Authentication check
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   if (!currentUser) {
     navigate('/auth');
     return null;

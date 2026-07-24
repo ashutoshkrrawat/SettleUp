@@ -126,7 +126,14 @@ export const DataProvider = ({ children }) => {
   const fetchGroupDetails = async (groupId) => {
     try {
       const data = await groupService.getGroupDetails(groupId);
-      setGroups(prev => prev.map(g => g._id === groupId ? data : g));
+      setGroups(prev => {
+        const exists = prev.some(g => g._id === groupId);
+        if (exists) {
+          return prev.map(g => g._id === groupId ? data : g);
+        } else {
+          return [data, ...prev];
+        }
+      });
       if (data.members) {
         setUsers(data.members);
       }
@@ -150,14 +157,14 @@ export const DataProvider = ({ children }) => {
     const data = await authService.login(email, password);
     localStorage.setItem('token', data.token);
     await loadUser();
-    return data.user;
+    return data;
   };
 
   const registerUser = async (name, email, password) => {
     const data = await authService.register(name, email, password);
     localStorage.setItem('token', data.token);
     await loadUser();
-    return data.user;
+    return data;
   };
 
   const logout = () => {
@@ -192,6 +199,19 @@ export const DataProvider = ({ children }) => {
     if (data.members) {
       setUsers(data.members);
     }
+    return data;
+  };
+
+  const joinGroup = async (inviteCode) => {
+    const data = await groupService.joinGroup(inviteCode);
+    setGroups(prev => {
+      const exists = prev.some(g => g._id === data._id);
+      if (exists) {
+        return prev.map(g => g._id === data._id ? data : g);
+      } else {
+        return [data, ...prev];
+      }
+    });
     return data;
   };
 
@@ -287,6 +307,7 @@ export const DataProvider = ({ children }) => {
         fetchExpensesForGroup,
         joinGroupRoom,
         leaveGroupRoom,
+        joinGroup,
       }}
     >
       {children}

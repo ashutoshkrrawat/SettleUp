@@ -28,7 +28,14 @@ export default function Auth() {
         user = await registerUser(name, email, password);
       }
       toast.success(`Welcome, ${user.name}!`);
-      navigate('/dashboard');
+      
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectPath = searchParams.get('redirect');
+      if (redirectPath) {
+        navigate(redirectPath);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Authentication failed');
     }

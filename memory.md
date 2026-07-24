@@ -6,7 +6,7 @@ This file is a handoff document to persist state, progress, and instructions bet
 
 ## 👩‍🏫 Working Persona & Strict Rules (CRITICAL)
 *   **Role**: Mentor/Teacher.
-*   **Permissions & File Editing**: The developer granted explicit permission to write and modify frontend source files directly.
+*   **Permissions & File Editing**: The developer requested that the AI must first ask for confirmation before adding or modifying any code or files.
 *   **Mentor Workflow**:
     1. Explain underlying architectural concepts and algorithms.
     2. Guide the developer step-by-step on what directories and files to create.
@@ -49,20 +49,25 @@ Completed and tested JWT register, login, and protected me endpoints.
 *   [x] Design instructions for page layouts and aesthetics.
 *   [x] Implement interactive pages: [Home.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Home.jsx), [Auth.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Auth.jsx), [Dashboard.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Dashboard.jsx), and [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx).
 
-### Phase 4: Frontend-Backend Connection (In Progress) ── 🚀 IN PROGRESS
-*   [x] Configure Vite proxy in [vite.config.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/vite.config.js) to route `/api` calls to `http://localhost:5000`.
+### Phase 4: Frontend-Backend Connection ── ✅ COMPLETE & VERIFIED
+*   [x] Configure Vite proxy in [vite.config.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/vite.config.js) to route `/api` calls to port `8000`.
 *   [x] Create production-grade Axios client [api.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/utils/api.js) with JWT request headers interceptor.
-*   [x] Implement modular [authService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/authService.js) using single default export.
-*   [x] Implement modular [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/groupService.js) using single default export.
-*   [x] Implement modular [expenseService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/expenseService.js) using single default export.
-*   [x] Refactor and rename state provider to [DataContext.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/context/DataContext.jsx) and configure Socket.io client.
+*   [x] Implement modular services ([authService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/authService.js), [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/groupService.js), [expenseService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/expenseService.js)).
+*   [x] Refactor state provider to [DataContext.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/context/DataContext.jsx) and bind Socket.io client.
+*   [x] Remove all references to "Mock" naming from context providers, hooks, and imports across pages.
+*   [x] Fix authentication return types so that the redirect works on login/register.
+*   [x] Add `useEffect` hooks to [Dashboard.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Dashboard.jsx) and [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx) to load database records asynchronously on mount.
+*   [x] Setup local MongoDB Compass testing environment.
+*   [x] Create a new `JoinGroup.jsx` page component to handle invite link routing (`/join/:inviteCode`) in the frontend.
+*   [x] Fix the "Copy Invite Link" logic in `GroupDetails.jsx` to use the group's unique `inviteCode` from the database.
+*   [x] Fix the display of member names from 'Unknown' by extracting string IDs from populated objects.
+*   [x] Prevent page refresh 404/Group Not Found and auth redirection by adding loading checks.
+*   [x] Auto-calculate overall Amount on EXACT splitting scheme and disable redundant manual inputs.
 
 ---
 
 ## 🎯 Next Steps
-*   **Step 1**: Implement `groupService.js` and `expenseService.js` inside the services folder.
-*   **Step 2**: Refactor Auth context provider to consume `authService.js`.
-*   **Step 3**: Connect socket client listeners.
+*   **Step 1**: Verify live Socket.io events by testing group expenses and settlements updates between two browsers.
 
 ---
 

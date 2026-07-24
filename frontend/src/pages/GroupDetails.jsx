@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,8 +31,35 @@ export default function GroupDetails() {
     inviteMemberByEmail,
     addExpense,
     deleteExpense,
-    getSettlements
+    getSettlements,
+    fetchGroupDetails,
+    fetchExpensesForGroup,
+    joinGroupRoom,
+    leaveGroupRoom,
+    loading
   } = useData();
+
+  const [pageLoading, setPageLoading] = useState(true);
+
+  useEffect(() => {
+    if (currentUser && id) {
+      setPaidBy(currentUser._id);
+      setPageLoading(true);
+      Promise.all([
+        fetchGroupDetails(id),
+        fetchExpensesForGroup(id)
+      ])
+        .catch(err => console.error(err))
+        .finally(() => {
+          setPageLoading(false);
+        });
+      joinGroupRoom(id);
+
+      return () => {
+        leaveGroupRoom(id);
+      };
+    }
+  }, [id, currentUser]);
 
   const [activeTab, setActiveTab] = useState('expenses'); // 'expenses', 'settle', 'members'
   const [copied, setCopied] = useState(false);
@@ -48,6 +75,14 @@ export default function GroupDetails() {
   const [customSplits, setCustomSplits] = useState({}); // user_id -> amount or percentage input value
 
   const group = groups.find(g => g._id === id);
+
+  if (loading || (currentUser && pageLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!currentUser) {
     navigate('/auth');
@@ -72,10 +107,24 @@ export default function GroupDetails() {
 
   // Helper to copy invite code
   const copyInviteCode = () => {
-    navigator.clipboard.writeText(`http://splitter.app/invite/${group._id}`);
+    const inviteLink = `${window.location.origin}/join/${group.inviteCode}`;
+    navigator.clipboard.writeText(inviteLink);
     setCopied(true);
     toast.success('Invite link copied!');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCustomSplitChange = (memberId, value) => {
+    const nextSplits = { ...customSplits, [memberId]: value };
+    setCustomSplits(nextSplits);
+
+    if (splitType === 'EXACT') {
+      const total = Object.values(nextSplits).reduce((sum, val) => {
+        const num = parseFloat(val) || 0;
+        return sum + num;
+      }, 0);
+      setExpAmount(total > 0 ? String(Math.round(total * 100) / 100) : '');
+    }
   };
 
   const handleInvite = (e) => {
@@ -91,10 +140,11 @@ export default function GroupDetails() {
   };
 
   const getUserName = (userId) => {
-    return users.find(u => u._id === userId)?.name || 'Unknown';
+    const id = userId?._id || userId;
+    return users.find(u => u._id === id)?.name || (typeof userId === 'object' && userId?.name) || 'Unknown';
   };
 
-  const handleAddExpenseSubmit = (e) => {
+  const handleAddExpenseSubmit = async (e) => {
     e.preventDefault();
     const amountVal = parseFloat(expAmount);
     if (!expDescription.trim()) {
@@ -105,13 +155,18 @@ export default function GroupDetails() {
       toast.error('Please enter a valid amount');
       return;
     }
+    if (!paidBy) {
+      toast.error('Payer is required');
+      return;
+    }
 
     let calculatedSplits = [];
     const membersCount = group.members.length;
 
     if (splitType === 'EQUAL') {
       const splitAmt = Math.round((amountVal / membersCount) * 100) / 100;
-      calculatedSplits = group.members.map((memberId, idx) => {
+      calculatedSplits = group.members.map((member, idx) => {
+        const memberId = member?._id || member;
         // adjust round off difference on last user
         if (idx === membersCount - 1) {
           const sumPrevious = splitAmt * (membersCount - 1);
@@ -121,7 +176,8 @@ export default function GroupDetails() {
       });
     } else if (splitType === 'EXACT') {
       let totalAssigned = 0;
-      calculatedSplits = group.members.map(memberId => {
+      calculatedSplits = group.members.map(member => {
+        const memberId = member?._id || member;
         const val = parseFloat(customSplits[memberId]) || 0;
         totalAssigned += val;
         return { user: memberId, amount: val };
@@ -133,7 +189,8 @@ export default function GroupDetails() {
       }
     } else if (splitType === 'PERCENT') {
       let totalPercent = 0;
-      calculatedSplits = group.members.map(memberId => {
+      calculatedSplits = group.members.map(member => {
+        const memberId = member?._id || member;
         const pct = parseFloat(customSplits[memberId]) || 0;
         totalPercent += pct;
         const splitAmt = Math.round((amountVal * (pct / 100)) * 100) / 100;
@@ -146,20 +203,24 @@ export default function GroupDetails() {
       }
     }
 
-    addExpense({
-      groupId: group._id,
-      description: expDescription,
-      amount: amountVal,
-      splitType,
-      paidBy,
-      splits: calculatedSplits
-    });
+    try {
+      await addExpense({
+        groupId: group._id,
+        description: expDescription,
+        amount: amountVal,
+        splitType,
+        paidBy,
+        splits: calculatedSplits
+      });
 
-    toast.success('Expense added successfully!');
-    setExpDescription('');
-    setExpAmount('');
-    setCustomSplits({});
-    setShowAddExpenseModal(false);
+      toast.success('Expense added successfully!');
+      setExpDescription('');
+      setExpAmount('');
+      setCustomSplits({});
+      setShowAddExpenseModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to add expense');
+    }
   };
 
   return (
@@ -355,20 +416,22 @@ export default function GroupDetails() {
                 </div>
 
                 <div className="bg-card border border-border/40 rounded-3xl divide-y divide-border/10 overflow-hidden">
-                  {group.members.map(memberId => {
-                    const matchUser = users.find(u => u._id === memberId);
+                  {group.members.map(member => {
+                    const mId = member?._id || member;
+                    const matchUser = users.find(u => u._id === mId) || (typeof member === 'object' ? member : null);
+                    const createdById = group.createdBy?._id || group.createdBy;
                     return (
-                      <div key={memberId} className="p-4 flex items-center justify-between">
+                      <div key={mId} className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-bold text-xs">
-                            {matchUser?.name.charAt(0).toUpperCase() || '?'}
+                            {matchUser?.name?.charAt(0).toUpperCase() || '?'}
                           </div>
                           <div>
                             <h4 className="font-bold text-sm">{matchUser?.name}</h4>
                             <p className="text-xs text-muted-foreground font-light">{matchUser?.email}</p>
                           </div>
                         </div>
-                        {group.createdBy === memberId && (
+                        {createdById === mId && (
                           <span className="text-[10px] uppercase font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
                             Owner
                           </span>
@@ -389,8 +452,9 @@ export default function GroupDetails() {
             <div className="space-y-4">
               {group.balances.map(b => {
                 const balVal = b.balance;
+                const balanceUserId = b.user?._id || b.user;
                 return (
-                  <div key={b.user} className="flex items-center justify-between border-b border-border/10 pb-2">
+                  <div key={balanceUserId} className="flex items-center justify-between border-b border-border/10 pb-2">
                     <span className="text-sm font-light">{getUserName(b.user)}</span>
                     <span className={`text-sm font-bold ${balVal > 0 ? 'text-primary' : balVal < 0 ? 'text-orange-500' : 'text-muted-foreground'}`}>
                       {balVal > 0 ? '+' : ''}${balVal.toFixed(2)}
@@ -508,10 +572,11 @@ export default function GroupDetails() {
                     <input
                       type="number"
                       step="0.01"
-                      placeholder="0.00"
+                      placeholder={splitType === 'EXACT' ? "Auto-calculated" : "0.00"}
                       value={expAmount}
                       onChange={(e) => setExpAmount(e.target.value)}
-                      className="w-full bg-secondary border border-border/40 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-4 py-3 outline-none transition-all font-light"
+                      disabled={splitType === 'EXACT'}
+                      className="w-full bg-secondary border border-border/40 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-4 py-3 outline-none transition-all font-light disabled:opacity-60 disabled:cursor-not-allowed"
                       required
                     />
                   </div>
@@ -527,11 +592,14 @@ export default function GroupDetails() {
                       onChange={(e) => setPaidBy(e.target.value)}
                       className="w-full bg-secondary border border-border/40 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-4 py-3 outline-none transition-all font-light"
                     >
-                      {group.members.map(memberId => (
-                        <option key={memberId} value={memberId}>
-                          {getUserName(memberId)}
-                        </option>
-                      ))}
+                      {group.members.map(member => {
+                        const mId = member?._id || member;
+                        return (
+                          <option key={mId} value={mId}>
+                            {getUserName(member)}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                   <div className="space-y-1.5 col-span-2 sm:col-span-1">
@@ -571,21 +639,24 @@ export default function GroupDetails() {
                       Specify splits ({splitType === 'EXACT' ? '$' : '%'})
                     </span>
                     <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
-                      {group.members.map(memberId => (
-                        <div key={memberId} className="flex items-center justify-between gap-4">
-                          <span className="text-sm font-light">{getUserName(memberId)}</span>
-                          <div className="relative w-32">
-                            <input
-                              type="number"
-                              step="any"
-                              placeholder={splitType === 'EXACT' ? '0.00' : '0'}
-                              value={customSplits[memberId] || ''}
-                              onChange={(e) => setCustomSplits({ ...customSplits, [memberId]: e.target.value })}
-                              className="w-full bg-secondary border border-border/40 focus:border-primary focus:ring-1 focus:ring-primary rounded-lg px-3 py-1.5 text-sm outline-none text-right font-light"
-                            />
+                      {group.members.map(member => {
+                        const memberId = member?._id || member;
+                        return (
+                          <div key={memberId} className="flex items-center justify-between gap-4">
+                            <span className="text-sm font-light">{getUserName(member)}</span>
+                            <div className="relative w-32">
+                              <input
+                                type="number"
+                                step="any"
+                                placeholder={splitType === 'EXACT' ? '0.00' : '0'}
+                                value={customSplits[memberId] || ''}
+                                onChange={(e) => handleCustomSplitChange(memberId, e.target.value)}
+                                className="w-full bg-secondary border border-border/40 focus:border-primary focus:ring-1 focus:ring-primary rounded-lg px-3 py-1.5 text-sm outline-none text-right font-light"
+                              />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
