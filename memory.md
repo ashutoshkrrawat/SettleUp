@@ -63,11 +63,15 @@ Completed and tested JWT register, login, and protected me endpoints.
 *   [x] Fix the display of member names from 'Unknown' by extracting string IDs from populated objects.
 *   [x] Prevent page refresh 404/Group Not Found and auth redirection by adding loading checks.
 *   [x] Auto-calculate overall Amount on EXACT splitting scheme and disable redundant manual inputs.
+*   [x] Verify live Socket.io events by testing group expenses and settlements updates between two browsers.
 
 ---
 
 ## 🎯 Next Steps
-*   **Step 1**: Verify live Socket.io events by testing group expenses and settlements updates between two browsers.
+*   **Step 1**: Download and set up a portable, self-contained native Windows Redis server in the project workspace (bypassing WSL/Docker startup issues).
+*   **Step 2**: Install backend dependencies `bullmq` and `nodemailer`.
+*   **Step 3**: Implement the BullMQ background queue (`reminderQueue.js`) and worker processing (`reminderWorker.js`) to handle asynchronous reminders.
+*   **Step 4**: Mount the `/api/groups/:id/remind` trigger route on the backend.
 
 ---
 
