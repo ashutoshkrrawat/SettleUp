@@ -134,6 +134,34 @@ const getSettlements = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Send reminders to all debtors in the group
+ * @route   POST /api/groups/:id/remind
+ * @access  Private
+ */
+const sendGroupReminders = async (req, res) => {
+  try {
+    const groupId = req.params.id;
+    const requestorId = req.user._id;
+
+    const result = await groupService.sendGroupReminders({
+      groupId,
+      requestorId,
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Send reminders controller error:', error);
+    const statusCode = error.message.includes('Not authorized')
+      ? 401
+      : error.message.includes('not found')
+      ? 404
+      : 500;
+    res.status(statusCode).json({ message: error.message });
+  }
+};
+
+
 module.exports = {
   createGroup,
   getUserGroups,
@@ -143,4 +171,5 @@ module.exports = {
   resetInviteCode,
   removeMember,
   getSettlements,
+  sendGroupReminders,
 };

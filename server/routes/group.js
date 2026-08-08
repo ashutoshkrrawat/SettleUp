@@ -10,6 +10,7 @@ const {
   resetInviteCode,
   removeMember,
   getSettlements,
+  sendGroupReminders,
 } = require('../controllers/groupController');
 
 // @route   POST /api/groups
@@ -31,6 +32,11 @@ router.get('/:id', protect, getGroupDetails);
 // @desc    Invite a user to a group using their email
 // @access  Private
 router.post('/:id/invite', protect, inviteMember);
+
+// @route   POST /api/groups/:id/remind
+// @desc    Send email reminders to all debtors in the group
+// @access  Private
+router.post('/:id/remind', protect, sendGroupReminders);
 
 // @route   POST /api/groups/join/:inviteCode
 // @desc    Join a group using an invite code

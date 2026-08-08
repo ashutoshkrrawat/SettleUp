@@ -7,6 +7,7 @@ const { initSocket } = require('./config/socket');
 const authRoutes = require('./routes/auth');
 const groupRoutes = require('./routes/group');
 const expenseRoutes = require('./routes/expense');
+const { initReminderWorker } = require('./config/reminderWorker');
 
 // connecting database
 connectDB();
@@ -27,6 +28,9 @@ const server = http.createServer(app);
 
 // Initialize Socket.io
 initSocket(server);
+
+// Start BullMQ Background Worker
+initReminderWorker();
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

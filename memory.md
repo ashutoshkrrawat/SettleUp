@@ -67,13 +67,47 @@ Completed and tested JWT register, login, and protected me endpoints.
 
 ---
 
+### Phase 5: BullMQ/Redis Async Notification Setup ── ⏳ IN PROGRESS
+*   [x] Start local Redis server running on port `6379`.
+*   [x] Add Redis and SMTP variables to backend `.env`.
+*   [x] Create Redis connection config [redis.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/config/redis.js).
+*   [x] Implement BullMQ queue [reminderQueue.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/config/reminderQueue.js).
+*   [x] Create background Worker [reminderWorker.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/config/reminderWorker.js) with Nodemailer setup.
+*   [x] Add `sendGroupReminders` core logic to [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/groupService.js) to automatically queue reminder emails for debtors.
+
+---
+
 ## 🎯 Next Steps
-*   **Step 1**: Download and set up a portable, self-contained native Windows Redis server in the project workspace (bypassing WSL/Docker startup issues).
-*   **Step 2**: Install backend dependencies `bullmq` and `nodemailer`.
-*   **Step 3**: Implement the BullMQ background queue (`reminderQueue.js`) and worker processing (`reminderWorker.js`) to handle asynchronous reminders.
-*   **Step 4**: Mount the `/api/groups/:id/remind` trigger route on the backend.
+*   **Step 1**: Create `sendGroupReminders` handler in `server/controllers/groupController.js` to call the service.
+*   **Step 2**: Add route endpoint `POST /api/groups/:id/remind` in `server/routes/group.js`.
+*   **Step 3**: Import and run `initReminderWorker()` in `server/server.js` to run the worker on startup.
+*   **Step 4**: Add a frontend API call in `frontend/services/groupService.js` and context method in `DataContext.jsx`.
+*   **Step 5**: Place the "Send Reminders" button in `GroupDetails.jsx` settlement tab and test it.
 
 ---
 
 ## 🗺️ Remaining Road Map
 *   **Phase 5**: BullMQ/Redis async notification setup.
+
+
+---
+
+## 💡 Revision Notes: Frontend-Backend Connection Details
+
+### 1. Axios Client & Interceptors
+*   **Client Location**: [api.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/utils/api.js)
+*   **Base URL**: Configured as `/api`. 
+*   **Vite Proxy**: In [vite.config.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/vite.config.js), requests targeting `/api` are proxied to `http://localhost:8000`.
+*   **Request Interceptor**: Automatically retrieves the JWT token via `localStorage.getItem('token')` and appends it to the `Authorization` header as `Bearer <token>` for all outgoing API requests.
+*   **Response Interceptor**: Intercepts error responses. If a `401 Unauthorized` status code is received (token expired or invalid), it automatically removes the token from `localStorage` to clean up the expired session.
+
+### 2. Services Structure
+*   The frontend uses dedicated service files to abstract all API interactions:
+    *   [authService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/authService.js): Logic for register, login, and fetching current user.
+    *   [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/groupService.js): Handles groups, invitations, resetting invite codes, and retrieving calculated debts/settlements.
+    *   [expenseService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/expenseService.js): Handles creating and fetching expenses.
+
+### 3. State & Socket.io Connection
+*   **Context Provider**: Managed globally via [DataContext.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/context/DataContext.jsx).
+*   **Real-time Synchronization**: When a user logs in, a Socket.io client connection is established. It listens to real-time events (like `expenseAdded`, `settledUp`, `groupUpdated`) and dynamically dispatches updates to the state so that other active group members see changes instantly without page reloads.
+

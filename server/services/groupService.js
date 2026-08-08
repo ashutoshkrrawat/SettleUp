@@ -280,6 +280,44 @@ const getGroupSettlements = async ({ groupId, userId }) => {
     transactions,
   };
 };
+/**
+ * Identify debtors in the group and queue reminder emails
+ */
+const sendGroupReminders = async ({ groupId, requestorId }) => {
+  // 1. Fetch group details and populate user data
+  const group = await Group.findById(groupId)
+    .populate('balances.user', 'name email')
+    .populate('members', 'name email');
+
+  if (!group) {
+    throw new Error('Group not found');
+  }
+
+  // 2. Validate requestor is a member of the group
+  const requestor = group.members.find(m => m._id.toString() === requestorId.toString());
+  if (!requestor) {
+    throw new Error('Not authorized to send reminders in this group');
+  }
+
+  const { addReminderJob } = require('../config/reminderQueue');
+  let queuedCount = 0;
+
+  // 3. Find anyone with a negative balance (debtor) and add to queue
+  for (const record of group.balances) {
+    const balanceAmount = Math.round(record.balance * 100) / 100;
+    if (balanceAmount < -0.01) {
+      const debtor = record.user;
+      const amountOwed = -balanceAmount;
+
+      // Add to BullMQ queue
+      await addReminderJob(debtor.email, group.name, amountOwed, requestor.name);
+      queuedCount++;
+    }
+  }
+
+  return { success: true, queuedJobs: queuedCount };
+};
+
 
 module.exports = {
   createGroup,
@@ -290,4 +328,5 @@ module.exports = {
   resetInviteLink,
   removeMember,
   getGroupSettlements,
+  sendGroupReminders,
 };
