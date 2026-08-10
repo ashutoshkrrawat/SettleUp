@@ -36,10 +36,23 @@ export default function GroupDetails() {
     fetchExpensesForGroup,
     joinGroupRoom,
     leaveGroupRoom,
-    loading
+    loading,
+    sendGroupReminders,
   } = useData();
 
   const [pageLoading, setPageLoading] = useState(true);
+  const [sendingReminders, setSendingReminders] = useState(false);
+
+  const handleSendReminders = async () => {
+    setSendingReminders(true);
+    try {
+      await sendGroupReminders(group._id);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSendingReminders(false);
+    }
+  };
 
   useEffect(() => {
     if (currentUser && id) {
@@ -353,7 +366,19 @@ export default function GroupDetails() {
 
             {activeTab === 'settle' && (
               <div className="space-y-4">
-                <h3 className="text-xl font-bold">Optimized Settle Up Flows</h3>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-bold">Optimized Settle Up Flows</h3>
+                  {settlements.length > 0 && (
+                    <button
+                      onClick={handleSendReminders}
+                      disabled={sendingReminders}
+                      className="px-4 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-sm hover:opacity-90 disabled:opacity-50"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>{sendingReminders ? 'Sending...' : 'Send Reminders'}</span>
+                    </button>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground font-light mb-4">
                   Using our greedy transaction-minimizing algorithm, we have simplified group debts to the absolute minimum payments possible.
                 </p>

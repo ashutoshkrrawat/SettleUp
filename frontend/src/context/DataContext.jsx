@@ -283,6 +283,17 @@ export const DataProvider = ({ children }) => {
     return transactions;
   };
 
+  const sendGroupReminders = async (groupId) => {
+    try {
+      const data = await groupService.sendReminders(groupId);
+      toast.success(`Success! Sent reminders to ${data.queuedJobs} member(s).`);
+      return data;
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
   return (
     <DataContext.Provider
       value={{
@@ -308,9 +319,11 @@ export const DataProvider = ({ children }) => {
         joinGroupRoom,
         leaveGroupRoom,
         joinGroup,
+        sendGroupReminders,
       }}
     >
       {children}
     </DataContext.Provider>
   );
 };
+

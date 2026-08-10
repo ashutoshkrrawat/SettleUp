@@ -35,6 +35,11 @@ const resetInvite = async (groupId) => {
   return data;
 };
 
+const sendReminders = async (groupId) => {
+  const { data } = await api.post(`/groups/${groupId}/remind`);
+  return data;
+};
+
 export default {
   getGroups,
   getGroupDetails,
@@ -43,4 +48,6 @@ export default {
   removeMember,
   joinGroup,
   resetInvite,
+  sendReminders,
 };
+

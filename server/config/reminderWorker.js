@@ -22,7 +22,7 @@ function initReminderWorker() {
       console.log(`[Worker] Processing job ${job.id}: Sending reminder to ${email} for group ${groupName}`);
 
       const mailOptions = {
-        from: `"Expense Splitter" <no-reply@expensesplitter.com>`,
+        from: `"${requestorName} via Expense Splitter" <${process.env.SMTP_USER}>`,
         to: email,
         subject: `Pending payment reminder for "${groupName}"`,
         text: `Hello,\n\nThis is a friendly reminder from ${requestorName} that you have a pending balance of $${amount.toFixed(2)} in the group "${groupName}".\n\nPlease log in to the Expense Splitter app to settle up.\n\nBest regards,\nExpense Splitter Team`,

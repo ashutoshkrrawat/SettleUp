@@ -67,27 +67,31 @@ Completed and tested JWT register, login, and protected me endpoints.
 
 ---
 
-### Phase 5: BullMQ/Redis Async Notification Setup ── ⏳ IN PROGRESS
+### Phase 5: BullMQ/Redis Async Notification Setup ── ✅ COMPLETE & VERIFIED
 *   [x] Start local Redis server running on port `6379`.
 *   [x] Add Redis and SMTP variables to backend `.env`.
 *   [x] Create Redis connection config [redis.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/config/redis.js).
 *   [x] Implement BullMQ queue [reminderQueue.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/config/reminderQueue.js).
 *   [x] Create background Worker [reminderWorker.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/config/reminderWorker.js) with Nodemailer setup.
 *   [x] Add `sendGroupReminders` core logic to [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/groupService.js) to automatically queue reminder emails for debtors.
+*   [x] Add controller handler in [groupController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/groupController.js).
+*   [x] Mount POST route `/api/groups/:id/remind` in [group.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/group.js).
+*   [x] Initialize and load background worker at server boot in [server.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/server.js).
+*   [x] Implement frontend service helper in [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/groupService.js) and context handler in [DataContext.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/context/DataContext.jsx).
+*   [x] Add interactive "Send Reminders" button in [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx) to trigger notifications.
+*   [x] Fix email spam placement by updating `from` address in [reminderWorker.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/config/reminderWorker.js) to match authenticated `SMTP_USER` with `"${requestorName} via Expense Splitter"` display format.
 
 ---
 
 ## 🎯 Next Steps
-*   **Step 1**: Create `sendGroupReminders` handler in `server/controllers/groupController.js` to call the service.
-*   **Step 2**: Add route endpoint `POST /api/groups/:id/remind` in `server/routes/group.js`.
-*   **Step 3**: Import and run `initReminderWorker()` in `server/server.js` to run the worker on startup.
-*   **Step 4**: Add a frontend API call in `frontend/services/groupService.js` and context method in `DataContext.jsx`.
-*   **Step 5**: Place the "Send Reminders" button in `GroupDetails.jsx` settlement tab and test it.
+*   **Step 1**: Restart your Node.js backend server so it loads the updated `reminderWorker.js`.
+*   **Step 2**: Trigger a reminder email from the frontend and verify it arrives directly in the recipient's primary **Inbox** rather than Spam.
 
 ---
 
 ## 🗺️ Remaining Road Map
-*   **Phase 5**: BullMQ/Redis async notification setup.
+*   **Phase 6 (Optional/Future)**: Production deployment setup & Resend/SendGrid transactional email integration.
+
 
 
 ---
