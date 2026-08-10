@@ -31,12 +31,16 @@ export default function Dashboard() {
     logoutUser,
     createGroup,
     fetchGroups,
+    pendingInvites = [],
+    fetchPendingInvites,
+    respondToInvite,
     loading
   } = useData();
 
   useEffect(() => {
     if (currentUser) {
       fetchGroups();
+      if (fetchPendingInvites) fetchPendingInvites();
     }
   }, [currentUser]);
 
@@ -189,6 +193,52 @@ export default function Dashboard() {
             <span>Create New Group</span>
           </button>
         </div>
+
+        {/* Pending Group Invitations Banner */}
+        {pendingInvites && pendingInvites.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-indigo-500/10 border border-indigo-500/30 p-5 rounded-3xl space-y-4"
+          >
+            <div className="flex items-center gap-3 text-indigo-500">
+              <Sparkles className="w-5 h-5" />
+              <h3 className="font-extrabold text-base">
+                Pending Group Invitations ({pendingInvites.length})
+              </h3>
+            </div>
+
+            <div className="space-y-3">
+              {pendingInvites.map((inv) => (
+                <div
+                  key={inv.groupId}
+                  className="bg-card border border-border/50 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm"
+                >
+                  <div>
+                    <h4 className="font-bold text-base">{inv.groupName}</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Invited by <span className="font-medium text-foreground">{inv.invitedBy}</span>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      onClick={() => respondToInvite(inv.groupId, true)}
+                      className="flex-1 sm:flex-initial px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-sm hover:scale-105 transition-transform"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => respondToInvite(inv.groupId, false)}
+                      className="flex-1 sm:flex-initial px-4 py-2 bg-secondary text-muted-foreground hover:text-foreground font-bold text-xs rounded-xl hover:scale-105 transition-transform"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Bento Grid Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

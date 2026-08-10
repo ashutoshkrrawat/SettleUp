@@ -34,6 +34,23 @@ const GroupSchema = new mongoose.Schema({
       }
     }
   ],
+  pendingInvites: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      email: String,
+      invitedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      invitedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ],
   inviteCode: {
     type: String,
     unique: true,

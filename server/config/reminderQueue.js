@@ -14,7 +14,7 @@ const reminderQueue = new Queue('reminderQueue', {
  * @param {string} requestorName - Person sending the reminder
  */
 async function addReminderJob(email, groupName, amount, requestorName) {
-  await reminderQueue.add('sendReminderEmail', {
+  const addPromise = reminderQueue.add('sendReminderEmail', {
     email,
     groupName,
     amount,
@@ -25,7 +25,14 @@ async function addReminderJob(email, groupName, amount, requestorName) {
       type: 'exponential',
       delay: 5000, // Wait 5 seconds before first retry
     },
+    removeOnComplete: true,
   });
+
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Notification service timeout. Please verify Redis is running.')), 5000)
+  );
+
+  return Promise.race([addPromise, timeoutPromise]);
 }
 
 module.exports = {

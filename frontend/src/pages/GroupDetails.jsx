@@ -42,6 +42,7 @@ export default function GroupDetails() {
 
   const [pageLoading, setPageLoading] = useState(true);
   const [sendingReminders, setSendingReminders] = useState(false);
+  const [sendingInvite, setSendingInvite] = useState(false);
 
   const handleSendReminders = async () => {
     setSendingReminders(true);
@@ -128,28 +129,50 @@ export default function GroupDetails() {
   };
 
   const handleCustomSplitChange = (memberId, value) => {
-    const nextSplits = { ...customSplits, [memberId]: value };
-    setCustomSplits(nextSplits);
-
-    if (splitType === 'EXACT') {
-      const total = Object.values(nextSplits).reduce((sum, val) => {
-        const num = parseFloat(val) || 0;
-        return sum + num;
-      }, 0);
-      setExpAmount(total > 0 ? String(Math.round(total * 100) / 100) : '');
-    }
+    setCustomSplits(prev => {
+      const updated = { ...prev, [memberId]: value };
+      if (splitType === 'EXACT') {
+        const sum = Object.values(updated).reduce((acc, curr) => acc + (parseFloat(curr) || 0), 0);
+        setExpAmount(sum > 0 ? sum.toFixed(2) : '');
+      }
+      return updated;
+    });
   };
 
-  const handleInvite = (e) => {
+  const handleInvite = async (e) => {
     e.preventDefault();
     if (!inviteEmail.trim()) {
       toast.error('Email is required');
       return;
     }
-    inviteMemberByEmail(group._id, inviteEmail);
-    toast.success(`Invite sent to ${inviteEmail}`);
-    setInviteEmail('');
-    setShowInviteModal(false);
+    setSendingInvite(true);
+    try {
+      await inviteMemberByEmail(group._id, inviteEmail.trim());
+      setInviteEmail('');
+      setShowInviteModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to send invitation');
+    } finally {
+      setSendingInvite(false);
+    }
+  };
+
+  const handleRemoveOrLeaveMember = async (targetUserId) => {
+    const isSelf = targetUserId === currentUser._id;
+    if (!window.confirm(isSelf ? 'Are you sure you want to leave this group?' : 'Are you sure you want to remove this member?')) {
+      return;
+    }
+    try {
+      await removeMember(group._id, targetUserId);
+      if (isSelf) {
+        toast.success('You have left the group.');
+        navigate('/dashboard');
+      } else {
+        toast.success('Member removed successfully.');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to remove/leave group');
+    }
   };
 
   const getUserName = (userId) => {
@@ -159,13 +182,9 @@ export default function GroupDetails() {
 
   const handleAddExpenseSubmit = async (e) => {
     e.preventDefault();
-    const amountVal = parseFloat(expAmount);
+
     if (!expDescription.trim()) {
       toast.error('Description is required');
-      return;
-    }
-    if (isNaN(amountVal) || amountVal <= 0) {
-      toast.error('Please enter a valid amount');
       return;
     }
     if (!paidBy) {
@@ -173,34 +192,31 @@ export default function GroupDetails() {
       return;
     }
 
+    let amountVal = parseFloat(expAmount);
     let calculatedSplits = [];
     const membersCount = group.members.length;
 
-    if (splitType === 'EQUAL') {
-      const splitAmt = Math.round((amountVal / membersCount) * 100) / 100;
-      calculatedSplits = group.members.map((member, idx) => {
-        const memberId = member?._id || member;
-        // adjust round off difference on last user
-        if (idx === membersCount - 1) {
-          const sumPrevious = splitAmt * (membersCount - 1);
-          return { user: memberId, amount: Math.round((amountVal - sumPrevious) * 100) / 100 };
-        }
-        return { user: memberId, amount: splitAmt };
-      });
-    } else if (splitType === 'EXACT') {
+    if (splitType === 'EXACT') {
       let totalAssigned = 0;
       calculatedSplits = group.members.map(member => {
         const memberId = member?._id || member;
         const val = parseFloat(customSplits[memberId]) || 0;
         totalAssigned += val;
-        return { user: memberId, amount: val };
+        return { user: memberId, amount: Math.round(val * 100) / 100 };
       });
 
-      if (Math.abs(totalAssigned - amountVal) > 0.02) {
-        toast.error(`Total split amounts ($${totalAssigned.toFixed(2)}) must match total expense sum ($${amountVal.toFixed(2)})`);
+      amountVal = Math.round(totalAssigned * 100) / 100;
+
+      if (amountVal <= 0) {
+        toast.error('Total exact split amounts must be greater than $0.00');
         return;
       }
     } else if (splitType === 'PERCENT') {
+      if (isNaN(amountVal) || amountVal <= 0) {
+        toast.error('Please enter a valid total expense amount');
+        return;
+      }
+
       let totalPercent = 0;
       calculatedSplits = group.members.map(member => {
         const memberId = member?._id || member;
@@ -210,10 +226,25 @@ export default function GroupDetails() {
         return { user: memberId, amount: splitAmt, percentage: pct };
       });
 
-      if (Math.abs(totalPercent - 100) > 0.1) {
+      if (Math.abs(totalPercent - 100) > 0.01) {
         toast.error(`Total percentages must sum up to exactly 100% (currently ${totalPercent}%)`);
         return;
       }
+    } else { // EQUAL
+      if (isNaN(amountVal) || amountVal <= 0) {
+        toast.error('Please enter a valid total expense amount');
+        return;
+      }
+
+      const splitAmt = Math.round((amountVal / membersCount) * 100) / 100;
+      calculatedSplits = group.members.map((member, idx) => {
+        const memberId = member?._id || member;
+        if (idx === membersCount - 1) {
+          const sumPrevious = splitAmt * (membersCount - 1);
+          return { user: memberId, amount: Math.round((amountVal - sumPrevious) * 100) / 100 };
+        }
+        return { user: memberId, amount: splitAmt };
+      });
     }
 
     try {
@@ -456,11 +487,31 @@ export default function GroupDetails() {
                             <p className="text-xs text-muted-foreground font-light">{matchUser?.email}</p>
                           </div>
                         </div>
-                        {createdById === mId && (
-                          <span className="text-[10px] uppercase font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
-                            Owner
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {createdById === mId && (
+                            <span className="text-[10px] uppercase font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+                              Owner
+                            </span>
+                          )}
+
+                          {mId === currentUser._id && (
+                            <button
+                              onClick={() => handleRemoveOrLeaveMember(currentUser._id)}
+                              className="px-3 py-1 bg-destructive/10 text-destructive font-bold hover:bg-destructive hover:text-white rounded-xl text-xs transition-colors"
+                            >
+                              Leave Group
+                            </button>
+                          )}
+
+                          {createdById === currentUser._id && mId !== currentUser._id && (
+                            <button
+                              onClick={() => handleRemoveOrLeaveMember(mId)}
+                              className="px-3 py-1 bg-secondary text-muted-foreground font-bold hover:text-destructive hover:bg-destructive/10 rounded-xl text-xs transition-colors"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -537,10 +588,11 @@ export default function GroupDetails() {
 
                 <button
                   type="submit"
-                  className="premium-btn-attention w-full py-3.5 bg-primary text-primary-foreground font-bold rounded-xl shadow-md transition-colors hover:bg-primary-hover flex items-center justify-center gap-2 mt-4"
+                  disabled={sendingInvite}
+                  className="premium-btn-attention w-full py-3.5 bg-primary text-primary-foreground font-bold rounded-xl shadow-md transition-colors hover:bg-primary-hover flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
                 >
                   <Mail className="w-5 h-5" />
-                  <span>Send Invite</span>
+                  <span>{sendingInvite ? 'Sending Invite...' : 'Send Invite'}</span>
                 </button>
               </form>
             </motion.div>

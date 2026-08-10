@@ -162,6 +162,31 @@ const sendGroupReminders = async (req, res) => {
 };
 
 
+const getPendingInvites = async (req, res) => {
+  try {
+    const invites = await groupService.getUserPendingInvites(req.user._id);
+    res.json(invites);
+  } catch (error) {
+    console.error('Get pending invites error:', error);
+    res.status(500).json({ message: 'Server error while fetching invitations' });
+  }
+};
+
+const respondToInvite = async (req, res) => {
+  try {
+    const { accept } = req.body;
+    const result = await groupService.respondToInvite({
+      groupId: req.params.id,
+      userId: req.user._id,
+      accept: Boolean(accept),
+    });
+    res.json(result);
+  } catch (error) {
+    console.error('Respond to invite error:', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createGroup,
   getUserGroups,
@@ -172,4 +197,6 @@ module.exports = {
   removeMember,
   getSettlements,
   sendGroupReminders,
+  getPendingInvites,
+  respondToInvite,
 };

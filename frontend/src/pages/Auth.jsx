@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DollarSign, Moon, Sun, ArrowLeft, Mail, Lock, User, Sparkles } from 'lucide-react';
+import { DollarSign, Moon, Sun, ArrowLeft, Mail, Lock, User, Sparkles, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Auth() {
@@ -13,13 +13,20 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
 
+  const [authError, setAuthError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setAuthError('');
     if (!email || !password || (!isLogin && !name)) {
-      toast.error('Please fill in all fields');
+      const msg = 'Please fill in all required fields';
+      setAuthError(msg);
+      toast.error(msg);
       return;
     }
 
+    setSubmitting(true);
     try {
       let user;
       if (isLogin) {
@@ -27,7 +34,7 @@ export default function Auth() {
       } else {
         user = await registerUser(name, email, password);
       }
-      toast.success(`Welcome, ${user.name}!`);
+      toast.success(`Welcome back, ${user.name}!`);
       
       const searchParams = new URLSearchParams(window.location.search);
       const redirectPath = searchParams.get('redirect');
@@ -37,7 +44,11 @@ export default function Auth() {
         navigate('/dashboard');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Authentication failed');
+      const serverMsg = error.response?.data?.message || error.message || 'Authentication failed. Invalid email or password.';
+      setAuthError(serverMsg);
+      toast.error(serverMsg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -85,6 +96,19 @@ export default function Auth() {
               {isLogin ? 'Enter your details to access your dashboard' : 'Join Splitter today and split expenses smoothly'}
             </p>
           </div>
+
+          {authError && (
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-2xl flex items-start gap-3 text-destructive"
+            >
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <div className="text-xs font-semibold leading-relaxed">
+                {authError}
+              </div>
+            </motion.div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <AnimatePresence mode="wait">
@@ -160,7 +184,10 @@ export default function Auth() {
           <div className="mt-6 text-center text-sm font-light text-muted-foreground">
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setAuthError('');
+                setIsLogin(!isLogin);
+              }}
               className="text-primary font-bold hover:underline ml-1"
             >
               {isLogin ? 'Create one' : 'Sign In'}

@@ -11,7 +11,19 @@ const {
   removeMember,
   getSettlements,
   sendGroupReminders,
+  getPendingInvites,
+  respondToInvite,
 } = require('../controllers/groupController');
+
+// @route   GET /api/groups/invites/pending
+// @desc    Get all pending invitations for the logged-in user
+// @access  Private
+router.get('/invites/pending', protect, getPendingInvites);
+
+// @route   POST /api/groups/:id/respond-invite
+// @desc    Accept or decline a pending group invitation
+// @access  Private
+router.post('/:id/respond-invite', protect, respondToInvite);
 
 // @route   POST /api/groups
 // @desc    Create a new group

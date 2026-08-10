@@ -40,6 +40,16 @@ const sendReminders = async (groupId) => {
   return data;
 };
 
+const getPendingInvites = async () => {
+  const { data } = await api.get('/groups/invites/pending');
+  return data;
+};
+
+const respondToInvite = async (groupId, accept) => {
+  const { data } = await api.post(`/groups/${groupId}/respond-invite`, { accept });
+  return data;
+};
+
 export default {
   getGroups,
   getGroupDetails,
@@ -49,5 +59,7 @@ export default {
   joinGroup,
   resetInvite,
   sendReminders,
+  getPendingInvites,
+  respondToInvite,
 };
 

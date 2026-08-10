@@ -1,8 +1,9 @@
 import axios from 'axios';
 const api = axios.create({
-    baseURL:'/api',
-    headers:{
-        'Content-type':'application/json'
+    baseURL: '/api',
+    timeout: 15000,
+    headers: {
+        'Content-type': 'application/json'
     }
 })
 api.interceptors.request.use( //run before going to server

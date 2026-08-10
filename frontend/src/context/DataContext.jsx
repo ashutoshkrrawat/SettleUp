@@ -18,6 +18,7 @@ export const DataProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [pendingInvites, setPendingInvites] = useState([]);
   const [theme, setTheme] = useState('light');
   const [loading, setLoading] = useState(true);
   
@@ -186,11 +187,33 @@ export const DataProvider = ({ children }) => {
 
   const inviteMemberByEmail = async (groupId, email) => {
     const data = await groupService.inviteMember(groupId, email);
-    setGroups(prev => prev.map(g => g._id === groupId ? data : g));
-    if (data.members) {
-      setUsers(data.members);
-    }
+    toast.success(`Invitation sent to ${email}!`);
     return data;
+  };
+
+  const fetchPendingInvites = async () => {
+    try {
+      const data = await groupService.getPendingInvites();
+      setPendingInvites(data);
+      return data;
+    } catch (err) {
+      console.error('Failed to fetch pending invites:', err.message);
+    }
+  };
+
+  const respondToInvite = async (groupId, accept) => {
+    try {
+      await groupService.respondToInvite(groupId, accept);
+      if (accept) {
+        toast.success('Successfully joined group!');
+        await fetchGroups();
+      } else {
+        toast.info('Invitation declined');
+      }
+      setPendingInvites(prev => prev.filter(inv => inv.groupId !== groupId));
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message);
+    }
   };
 
   const removeMember = async (groupId, userId) => {
@@ -286,7 +309,11 @@ export const DataProvider = ({ children }) => {
   const sendGroupReminders = async (groupId) => {
     try {
       const data = await groupService.sendReminders(groupId);
-      toast.success(`Success! Sent reminders to ${data.queuedJobs} member(s).`);
+      if (data.queuedJobs > 0) {
+        toast.success(`Success! Sent email reminder(s) to ${data.queuedJobs} debtor(s).`);
+      } else {
+        toast.info('No members currently have a pending debt in this group!');
+      }
       return data;
     } catch (err) {
       toast.error(err.response?.data?.message || err.message);
@@ -320,6 +347,9 @@ export const DataProvider = ({ children }) => {
         leaveGroupRoom,
         joinGroup,
         sendGroupReminders,
+        pendingInvites,
+        fetchPendingInvites,
+        respondToInvite,
       }}
     >
       {children}

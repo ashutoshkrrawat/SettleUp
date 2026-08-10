@@ -83,9 +83,19 @@ Completed and tested JWT register, login, and protected me endpoints.
 
 ---
 
+### Phase 6: Core Bugfixes & Email Invitation Workflow ── ✅ COMPLETE & VERIFIED
+*   [x] **Issue 1 (Duplicate Members)**: Deduplicated `members` and `balances` arrays in [groupService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/groupService.js) when loading or joining groups.
+*   [x] **Issue 2 (Auth Toast & Inline Error Alert)**: Added inline red error banner and toast notifications in [Auth.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Auth.jsx) for invalid credentials and existing user registration errors.
+*   [x] **Issue 3 (Exact & Percent Expense Logging)**: Fixed `handleAddExpenseSubmit` and `handleCustomSplitChange` in [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx) to automatically calculate exact total amounts and format percentage objects cleanly.
+*   [x] **Issue 4 (Leave Group Option)**: Added a "Leave Group" button in [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx) for active members (with balance validation).
+*   [x] **Issue 5 (Email Invitations & In-App Permission)**: Implemented `pendingInvites` schema in [Group.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/model/Group.js), sent actual invitation emails via Nodemailer, and added an in-app "Pending Group Invitations" banner with Accept/Decline options in [Dashboard.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Dashboard.jsx).
+*   [x] **Issue 6 (Email Stuck at "Sending...")**: Added a 15s timeout to Axios in [api.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/utils/api.js), socket timeouts in Nodemailer [reminderWorker.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/config/reminderWorker.js), a 5s race timeout in [reminderQueue.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/config/reminderQueue.js), and loading state flags in [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx).
+
+---
+
 ## 🎯 Next Steps
-*   **Step 1**: Restart your Node.js backend server so it loads the updated `reminderWorker.js`.
-*   **Step 2**: Trigger a reminder email from the frontend and verify it arrives directly in the recipient's primary **Inbox** rather than Spam.
+*   **Step 1**: Restart your Node.js backend server (`node server.js` or `npm run dev`) so all new routes and controller updates are loaded.
+*   **Step 2**: Test sending an invite by email and accepting it from the new **Pending Group Invitations** banner on the Dashboard!
 
 ---
 
