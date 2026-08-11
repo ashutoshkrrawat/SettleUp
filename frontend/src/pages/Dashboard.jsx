@@ -34,6 +34,9 @@ export default function Dashboard() {
     pendingInvites = [],
     fetchPendingInvites,
     respondToInvite,
+    pendingConfirmations = [],
+    fetchPendingConfirmations,
+    respondToSplitPayment,
     loading
   } = useData();
 
@@ -41,6 +44,7 @@ export default function Dashboard() {
     if (currentUser) {
       fetchGroups();
       if (fetchPendingInvites) fetchPendingInvites();
+      if (fetchPendingConfirmations) fetchPendingConfirmations();
     }
   }, [currentUser]);
 
@@ -236,6 +240,57 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Pending Payment Confirmations Banner */}
+        {pendingConfirmations && pendingConfirmations.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-amber-500/10 border border-amber-500/30 p-5 rounded-3xl space-y-4"
+          >
+            <div className="flex items-center gap-3 text-amber-600 dark:text-amber-400">
+              <Sparkles className="w-5 h-5" />
+              <h3 className="font-extrabold text-base">
+                Pending Payment Confirmations ({pendingConfirmations.length})
+              </h3>
+            </div>
+
+            <div className="space-y-3">
+              {pendingConfirmations.map((item, idx) => {
+                const debtorName = item.debtor?.name || 'A user';
+                const debtorId = item.debtor?._id || item.debtor;
+
+                return (
+                  <div
+                    key={idx}
+                    className="bg-card border border-border/50 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm"
+                  >
+                    <div>
+                      <h4 className="font-bold text-base">{debtorName} claims they paid ${item.amount.toFixed(2)}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        For expense <span className="font-semibold text-foreground">"{item.expenseDescription}"</span> in <span className="font-semibold text-foreground">{item.groupName}</span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={() => respondToSplitPayment(item.expenseId, debtorId, true)}
+                        className="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-sm hover:scale-105 transition-transform"
+                      >
+                        Confirm ✓
+                      </button>
+                      <button
+                        onClick={() => respondToSplitPayment(item.expenseId, debtorId, false)}
+                        className="flex-1 sm:flex-initial px-4 py-2 bg-destructive text-destructive-foreground font-bold text-xs rounded-xl hover:scale-105 transition-transform"
+                      >
+                        Reject ✕
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </motion.div>
         )}

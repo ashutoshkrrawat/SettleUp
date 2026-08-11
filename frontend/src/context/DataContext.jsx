@@ -47,6 +47,8 @@ export const DataProvider = ({ children }) => {
       const user = await authService.getMe();
       setCurrentUser(user);
       connectSocket();
+      fetchPendingInvites();
+      fetchPendingConfirmations();
     } catch (err) {
       console.error('Session expired or invalid:', err.message);
       localStorage.removeItem('token');
@@ -245,6 +247,50 @@ export const DataProvider = ({ children }) => {
     return data;
   };
 
+  const [pendingConfirmations, setPendingConfirmations] = useState([]);
+
+  const fetchPendingConfirmations = async () => {
+    try {
+      const data = await expenseService.getPendingConfirmations();
+      setPendingConfirmations(data);
+    } catch (err) {
+      console.error('Failed to fetch pending confirmations:', err.message);
+    }
+  };
+
+  const markSplitPaid = async (expenseId) => {
+    try {
+      const updatedExpense = await expenseService.markSplitPaid(expenseId);
+      setExpenses(prev => prev.map(e => e._id === expenseId ? updatedExpense : e));
+      toast.success('Marked as paid! Waiting for confirmation.');
+      return updatedExpense;
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
+  const respondToSplitPayment = async (expenseId, participantUserId, accept) => {
+    try {
+      const updatedExpense = await expenseService.confirmSplitPayment(expenseId, participantUserId, accept);
+      setExpenses(prev => prev.map(e => e._id === expenseId ? updatedExpense : e));
+      setPendingConfirmations(prev => prev.filter(p => !(p.expenseId === expenseId && (p.debtor?._id || p.debtor) === participantUserId)));
+      
+      if (accept) {
+        toast.success('Payment confirmed! Group balance updated.');
+        if (updatedExpense.group) {
+          fetchGroupDetails(updatedExpense.group);
+        }
+      } else {
+        toast.info('Payment claim declined.');
+      }
+      return updatedExpense;
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
   const deleteExpenseObj = async (expenseId) => {
     const data = await expenseService.deleteExpense(expenseId);
     setExpenses(prev => prev.filter(e => e._id !== expenseId));
@@ -350,6 +396,10 @@ export const DataProvider = ({ children }) => {
         pendingInvites,
         fetchPendingInvites,
         respondToInvite,
+        pendingConfirmations,
+        fetchPendingConfirmations,
+        markSplitPaid,
+        respondToSplitPayment,
       }}
     >
       {children}

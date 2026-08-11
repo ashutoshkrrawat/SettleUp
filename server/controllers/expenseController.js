@@ -65,8 +65,64 @@ const deleteExpense = async (req, res) => {
   }
 };
 
+const markSplitPaid = async (req, res) => {
+  try {
+    const updatedExpense = await expenseService.markSplitAsPaid({
+      expenseId: req.params.id,
+      userId: req.user._id
+    });
+
+    // 🔌 Socket emit
+    try {
+      const io = getIO();
+      io.to(updatedExpense.group.toString()).emit('expense_updated', updatedExpense);
+    } catch (e) {}
+
+    res.json(updatedExpense);
+  } catch (error) {
+    console.error('Mark split paid error:', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+const confirmSplitPayment = async (req, res) => {
+  try {
+    const { participantUserId, accept } = req.body;
+    const updatedExpense = await expenseService.respondToSplitPayment({
+      expenseId: req.params.id,
+      participantUserId,
+      payerId: req.user._id,
+      accept: Boolean(accept)
+    });
+
+    // 🔌 Socket emit
+    try {
+      const io = getIO();
+      io.to(updatedExpense.group.toString()).emit('expense_updated', updatedExpense);
+    } catch (e) {}
+
+    res.json(updatedExpense);
+  } catch (error) {
+    console.error('Confirm split payment error:', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+const getPendingConfirmations = async (req, res) => {
+  try {
+    const pending = await expenseService.getUserPendingConfirmations(req.user._id);
+    res.json(pending);
+  } catch (error) {
+    console.error('Get pending confirmations error:', error);
+    res.status(500).json({ message: 'Server error while fetching pending confirmations' });
+  }
+};
+
 module.exports = {
   createExpense,
   getGroupExpenses,
-  deleteExpense
+  deleteExpense,
+  markSplitPaid,
+  confirmSplitPayment,
+  getPendingConfirmations
 };

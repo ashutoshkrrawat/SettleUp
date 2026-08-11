@@ -22,8 +22,29 @@ const deleteExpense = async (expenseId) => {
   return data;
 };
 
+const markSplitPaid = async (expenseId) => {
+  const { data } = await api.patch(`/expenses/${expenseId}/mark-paid`);
+  return data;
+};
+
+const confirmSplitPayment = async (expenseId, participantUserId, accept) => {
+  const { data } = await api.patch(`/expenses/${expenseId}/confirm-payment`, {
+    participantUserId,
+    accept,
+  });
+  return data;
+};
+
+const getPendingConfirmations = async () => {
+  const { data } = await api.get('/expenses/pending-confirmations');
+  return data;
+};
+
 export default {
   getGroupExpenses,
   createExpense,
   deleteExpense,
+  markSplitPaid,
+  confirmSplitPayment,
+  getPendingConfirmations,
 };

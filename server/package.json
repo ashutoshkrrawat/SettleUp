@@ -12,8 +12,8 @@
   },
   "scripts": {
     "start": "node server.js",
-    "redis": "redis\\redis-server.exe --port 6379",
-    "dev": "concurrently --kill-others-on-fail \"npm run redis\" \"nodemon server.js\"",
+    "redis": "redis\\redis-server.exe --port 6379 || exit 0",
+    "dev": "concurrently \"npm run redis\" \"nodemon server.js\"",
     "dev:server": "nodemon server.js"
   },
   "devDependencies": {

@@ -42,6 +42,11 @@ const expenseSchema = new mongoose.Schema({
         type: Number,
         min: [0, 'Percentage cannot be negative'],
         max: [100, 'Percentage cannot exceed 100']
+      },
+      status: {
+        type: String,
+        enum: ['UNPAID', 'PENDING_CONFIRMATION', 'CONFIRMED'],
+        default: 'UNPAID'
       }
     }
   ],

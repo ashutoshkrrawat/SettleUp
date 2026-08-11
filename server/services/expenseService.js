@@ -100,14 +100,20 @@ const createExpense = async ({ groupId, description, amount, splitType, paidBy, 
     throw new Error('All split participants must be members of the group');
   }
 
-  // 1. Create expense in database
+  // 1. Ensure splits have status set
+  const splitsWithStatus = calculatedSplits.map(s => ({
+    ...s,
+    status: s.user.toString() === paidBy.toString() ? 'CONFIRMED' : 'UNPAID'
+  }));
+
+  // Create expense in database
   const expense = await Expense.create({
     group: groupId,
     paidBy,
     description,
     amount: finalAmount,
     splitType,
-    splits: calculatedSplits
+    splits: splitsWithStatus
   });
 
   // 2. Adjust Cached Balances
@@ -131,6 +137,136 @@ const createExpense = async ({ groupId, description, amount, splitType, paidBy, 
 
   await group.save();
   return expense;
+};
+
+/**
+ * Mark a debtor's share in an expense as PENDING_CONFIRMATION
+ */
+const markSplitAsPaid = async ({ expenseId, userId }) => {
+  const expense = await Expense.findById(expenseId);
+  if (!expense) {
+    throw new Error('Expense not found');
+  }
+
+  const reqUserIdStr = userId.toString();
+  const expPayerIdStr = expense.paidBy._id ? expense.paidBy._id.toString() : expense.paidBy.toString();
+  if (reqUserIdStr === expPayerIdStr) {
+    throw new Error('You are the payer for this expense, so your share is already paid.');
+  }
+
+  const splitIndex = expense.splits.findIndex(s => {
+    if (!s || !s.user) return false;
+    const uId = s.user._id ? s.user._id.toString() : s.user.toString();
+    return uId === reqUserIdStr;
+  });
+
+  if (splitIndex === -1) {
+    throw new Error('You are not a participant in this expense');
+  }
+
+  if (expense.splits[splitIndex].status === 'CONFIRMED') {
+    throw new Error('This payment has already been confirmed');
+  }
+
+  expense.splits[splitIndex].status = 'PENDING_CONFIRMATION';
+  await expense.save();
+
+  return await Expense.findById(expense._id)
+    .populate('paidBy', 'name email')
+    .populate('splits.user', 'name email');
+};
+
+/**
+ * Respond (Accept/Reject) to a debtor's payment claim
+ */
+const respondToSplitPayment = async ({ expenseId, participantUserId, payerId, accept }) => {
+  const expense = await Expense.findById(expenseId);
+  if (!expense) {
+    throw new Error('Expense not found');
+  }
+
+  const expPayerIdStr = expense.paidBy._id ? expense.paidBy._id.toString() : expense.paidBy.toString();
+  if (expPayerIdStr !== payerId.toString()) {
+    throw new Error('Only the person who paid for this expense can confirm payments');
+  }
+
+  const targetUserIdStr = participantUserId.toString();
+  const splitIndex = expense.splits.findIndex(s => {
+    if (!s || !s.user) return false;
+    const uId = s.user._id ? s.user._id.toString() : s.user.toString();
+    return uId === targetUserIdStr;
+  });
+
+  if (splitIndex === -1) {
+    throw new Error('Target user is not a participant in this expense');
+  }
+
+  const splitItem = expense.splits[splitIndex];
+
+  if (accept) {
+    splitItem.status = 'CONFIRMED';
+    // When confirmed, update group balances (debtor paid back the payer)
+    const group = await Group.findById(expense.group);
+    if (group) {
+      // Credit debtor (increase balance towards 0)
+      const debtorIdx = group.balances.findIndex(b => {
+        const uId = b.user._id ? b.user._id.toString() : b.user.toString();
+        return uId === targetUserIdStr;
+      });
+      if (debtorIdx > -1) {
+        group.balances[debtorIdx].balance += splitItem.amount;
+      }
+      // Debit payer (reduce balance corresponding to received cash)
+      const payerIdx = group.balances.findIndex(b => {
+        const uId = b.user._id ? b.user._id.toString() : b.user.toString();
+        return uId === expPayerIdStr;
+      });
+      if (payerIdx > -1) {
+        group.balances[payerIdx].balance -= splitItem.amount;
+      }
+      await group.save();
+    }
+  } else {
+    splitItem.status = 'UNPAID';
+  }
+
+  await expense.save();
+
+  return await Expense.findById(expense._id)
+    .populate('paidBy', 'name email')
+    .populate('splits.user', 'name email');
+};
+
+/**
+ * Get all pending split payment confirmations across groups where currentUser is the payer
+ */
+const getUserPendingConfirmations = async (userId) => {
+  const expenses = await Expense.find({
+    paidBy: userId,
+    'splits.status': 'PENDING_CONFIRMATION'
+  })
+    .populate('group', 'name')
+    .populate('paidBy', 'name email')
+    .populate('splits.user', 'name email');
+
+  const pendingList = [];
+  expenses.forEach(exp => {
+    exp.splits.forEach(s => {
+      if (s.status === 'PENDING_CONFIRMATION' && s.user) {
+        pendingList.push({
+          expenseId: exp._id,
+          expenseDescription: exp.description,
+          groupId: exp.group._id,
+          groupName: exp.group.name,
+          debtor: s.user,
+          amount: s.amount,
+          date: exp.date
+        });
+      }
+    });
+  });
+
+  return pendingList;
 };
 
 /**
@@ -201,5 +337,8 @@ module.exports = {
   calculateSplits,
   createExpense,
   getGroupExpenses,
-  deleteExpense
+  deleteExpense,
+  markSplitAsPaid,
+  respondToSplitPayment,
+  getUserPendingConfirmations
 };

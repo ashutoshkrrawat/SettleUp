@@ -16,7 +16,12 @@ import {
   PlusCircle,
   Percent,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+  Clock,
+  XCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -38,11 +43,14 @@ export default function GroupDetails() {
     leaveGroupRoom,
     loading,
     sendGroupReminders,
+    markSplitPaid,
+    respondToSplitPayment,
   } = useData();
 
   const [pageLoading, setPageLoading] = useState(true);
   const [sendingReminders, setSendingReminders] = useState(false);
   const [sendingInvite, setSendingInvite] = useState(false);
+  const [expandedExpenseId, setExpandedExpenseId] = useState(null);
 
   const handleSendReminders = async () => {
     setSendingReminders(true);
@@ -352,44 +360,168 @@ export default function GroupDetails() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {groupExpenses.map(exp => (
-                      <div
-                        key={exp._id}
-                        className="bg-card border border-border/40 p-5 rounded-2xl shadow-sm flex items-center justify-between hover:border-primary/20 transition-all"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="bg-primary/10 w-11 h-11 rounded-xl flex items-center justify-center font-bold text-primary">
-                            <DollarSign className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-sm">{exp.description}</h4>
-                            <p className="text-xs text-muted-foreground font-light">
-                              Paid by <span className="font-bold">{getUserName(exp.paidBy)}</span> • {new Date(exp.date).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
+                    {groupExpenses.map(exp => {
+                      const isExpanded = expandedExpenseId === exp._id;
+                      const paidByIdStr = exp.paidBy?._id ? exp.paidBy._id.toString() : exp.paidBy?.toString();
+                      const isPayer = paidByIdStr === currentUser._id;
 
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <span className="text-base font-black block">${exp.amount.toFixed(2)}</span>
-                            <span className="text-[10px] text-muted-foreground uppercase tracking-wider block font-bold">
-                              {exp.splitType} Split
-                            </span>
+                      return (
+                        <div
+                          key={exp._id}
+                          className="bg-card border border-border/40 rounded-2xl shadow-sm overflow-hidden transition-all"
+                        >
+                          {/* Card Header (Clickable to toggle expand) */}
+                          <div
+                            onClick={() => setExpandedExpenseId(isExpanded ? null : exp._id)}
+                            className="p-5 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="bg-primary/10 w-11 h-11 rounded-xl flex items-center justify-center font-bold text-primary">
+                                <DollarSign className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-sm">{exp.description}</h4>
+                                <p className="text-xs text-muted-foreground font-light">
+                                  Paid by <span className="font-bold">{getUserName(exp.paidBy)}</span> • {new Date(exp.date).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                              <div className="text-right">
+                                <span className="text-base font-black block">${exp.amount.toFixed(2)}</span>
+                                <span className="text-[10px] text-muted-foreground uppercase tracking-wider block font-bold">
+                                  {exp.splitType} Split
+                                </span>
+                              </div>
+
+                              {isExpanded ? (
+                                <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                              ) : (
+                                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                              )}
+                            </div>
                           </div>
-                          {exp.paidBy === currentUser._id && (
-                            <button
-                              onClick={() => {
-                                deleteExpense(exp._id);
-                                toast.success('Expense deleted');
-                              }}
-                              className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
+
+                          {/* Collapsible Dropdown Details Panel */}
+                          <AnimatePresence>
+                            {isExpanded && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="border-t border-border/40 bg-muted/20 p-5 space-y-4"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                    Split Breakdown & Payment Status
+                                  </h5>
+                                  {isPayer && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteExpense(exp._id);
+                                        toast.success('Expense deleted');
+                                      }}
+                                      className="text-xs text-destructive hover:underline font-semibold flex items-center gap-1"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                      Delete Expense
+                                    </button>
+                                  )}
+                                </div>
+
+                                <div className="space-y-2.5">
+                                  {exp.splits?.map((splitItem, idx) => {
+                                    const splitUserId = splitItem.user?._id || splitItem.user;
+                                    const isMe = splitUserId === currentUser._id;
+                                    const status = splitItem.status || 'UNPAID';
+                                    const isSplitPayer = splitUserId === paidByIdStr;
+
+                                    return (
+                                      <div
+                                        key={idx}
+                                        className="bg-card/80 border border-border/30 p-3 rounded-xl flex items-center justify-between text-xs"
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center font-bold text-xs">
+                                            {getUserName(splitUserId).charAt(0).toUpperCase()}
+                                          </div>
+                                          <div>
+                                            <span className="font-bold block">{getUserName(splitUserId)}</span>
+                                            <span className="text-muted-foreground font-mono">
+                                              ${splitItem.amount.toFixed(2)}
+                                            </span>
+                                          </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                          {/* Status Badge */}
+                                          {isSplitPayer ? (
+                                            <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold rounded-lg flex items-center gap-1">
+                                              <CheckCircle2 className="w-3.5 h-3.5" />
+                                              Paid (Payer)
+                                            </span>
+                                          ) : status === 'CONFIRMED' ? (
+                                            <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold rounded-lg flex items-center gap-1">
+                                              <CheckCircle2 className="w-3.5 h-3.5" />
+                                              Confirmed
+                                            </span>
+                                          ) : status === 'PENDING_CONFIRMATION' ? (
+                                            <span className="px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold rounded-lg flex items-center gap-1">
+                                              <Clock className="w-3.5 h-3.5" />
+                                              Pending Confirmation
+                                            </span>
+                                          ) : (
+                                            <span className="px-2.5 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold rounded-lg flex items-center gap-1">
+                                              <XCircle className="w-3.5 h-3.5" />
+                                              Unpaid
+                                            </span>
+                                          )}
+
+                                          {/* Action Buttons */}
+                                          {/* 1. Debtor marks paid */}
+                                          {isMe && !isSplitPayer && status === 'UNPAID' && (
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                markSplitPaid(exp._id);
+                                              }}
+                                              className="px-3 py-1 bg-primary text-primary-foreground font-bold rounded-lg shadow-sm hover:opacity-90 transition-opacity"
+                                            >
+                                              Mark as Paid
+                                            </button>
+                                          )}
+
+                                          {/* 2. Payer confirms or rejects */}
+                                          {isPayer && !isSplitPayer && status === 'PENDING_CONFIRMATION' && (
+                                            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                              <button
+                                                onClick={() => respondToSplitPayment(exp._id, splitUserId, true)}
+                                                className="px-2.5 py-1 bg-emerald-600 text-white font-bold rounded-lg shadow-sm hover:bg-emerald-700 transition-colors"
+                                              >
+                                                Confirm ✓
+                                              </button>
+                                              <button
+                                                onClick={() => respondToSplitPayment(exp._id, splitUserId, false)}
+                                                className="px-2.5 py-1 bg-destructive text-destructive-foreground font-bold rounded-lg shadow-sm hover:opacity-90 transition-opacity"
+                                              >
+                                                Reject ✕
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
