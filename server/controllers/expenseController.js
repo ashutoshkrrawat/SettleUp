@@ -1,4 +1,6 @@
 const expenseService = require('../services/expenseService');
+const groupService = require('../services/groupService');
+const aiService = require('../services/aiService');
 const { getIO } = require('../config/socket');
 
 const createExpense = async (req, res) => {
@@ -72,7 +74,6 @@ const markSplitPaid = async (req, res) => {
       userId: req.user._id
     });
 
-    // 🔌 Socket emit
     try {
       const io = getIO();
       io.to(updatedExpense.group.toString()).emit('expense_updated', updatedExpense);
@@ -95,7 +96,6 @@ const confirmSplitPayment = async (req, res) => {
       accept: Boolean(accept)
     });
 
-    // 🔌 Socket emit
     try {
       const io = getIO();
       io.to(updatedExpense.group.toString()).emit('expense_updated', updatedExpense);
@@ -118,11 +118,31 @@ const getPendingConfirmations = async (req, res) => {
   }
 };
 
+// 🤖 AI Voice Expense Intent Parser Handler
+const parseAIExpense = async (req, res) => {
+  try {
+    const { transcript } = req.body;
+    if (!transcript || !transcript.trim()) {
+      return res.status(400).json({ message: 'Transcript string is required' });
+    }
+
+    // Fetch user's active groups for group matching
+    const userGroups = await groupService.getUserGroups(req.user._id);
+
+    const parsed = await aiService.parseVoiceExpenseIntent(transcript, userGroups);
+    res.json(parsed);
+  } catch (error) {
+    console.error('Parse AI expense controller error:', error);
+    res.status(500).json({ message: 'Failed to parse voice transcript' });
+  }
+};
+
 module.exports = {
   createExpense,
   getGroupExpenses,
   deleteExpense,
   markSplitPaid,
   confirmSplitPayment,
-  getPendingConfirmations
+  getPendingConfirmations,
+  parseAIExpense
 };

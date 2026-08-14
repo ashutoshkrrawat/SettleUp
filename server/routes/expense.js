@@ -7,8 +7,14 @@ const {
   deleteExpense,
   markSplitPaid,
   confirmSplitPayment,
-  getPendingConfirmations
+  getPendingConfirmations,
+  parseAIExpense
 } = require('../controllers/expenseController');
+
+// @route   POST /api/expenses/ai-parse
+// @desc    Parse natural language voice transcript using Gemini AI & group matcher
+// @access  Private
+router.post('/ai-parse', protect, parseAIExpense);
 
 // @route   GET /api/expenses/pending-confirmations
 // @desc    Get all pending payment confirmations where current user is the payer

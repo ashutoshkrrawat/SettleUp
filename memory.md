@@ -104,6 +104,15 @@ Completed and tested JWT register, login, and protected me endpoints.
 
 ---
 
+### Phase 8: Voice AI Assistant — ✅ COMPLETE
+*   [x] Created `aiService.js` with Gemini 2.5 Flash (`@google/genai`) structured JSON parser & Regex fallback engine.
+*   [x] Mounted `POST /api/expenses/ai-parse` in [expenseController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/expenseController.js) and [expense.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/expense.js).
+*   [x] Created custom Web Speech API hook `useVoiceRecognition.js` in [useVoiceRecognition.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/hooks/useVoiceRecognition.js).
+*   [x] Built animated [VoiceAIModal.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/components/VoiceAIModal.jsx) with pulse recording, live transcript, and AI confirmation card.
+*   [x] Integrated `Voice AI` mic button in [NavBar.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/components/NavBar.jsx).
+
+---
+
 ## 🎯 Project Status: ✅ COMPLETE & RESUME-READY
 
 All planned phases are done. The project is clean, hardened, and documented.

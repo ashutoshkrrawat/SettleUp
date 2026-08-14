@@ -40,6 +40,12 @@ const getPendingConfirmations = async () => {
   return data;
 };
 
+// 🤖 AI Voice Expense Intent Parser Call
+const parseVoiceExpense = async (transcript) => {
+  const { data } = await api.post('/expenses/ai-parse', { transcript });
+  return data;
+};
+
 export default {
   getGroupExpenses,
   createExpense,
@@ -47,4 +53,5 @@ export default {
   markSplitPaid,
   confirmSplitPayment,
   getPendingConfirmations,
+  parseVoiceExpense,
 };
