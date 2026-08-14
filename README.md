@@ -1,119 +1,130 @@
-# 💸 Expense Splitter
+# 💸 Splitter — Real-Time Expense Splitting App
 
-A real-time, multi-user expense splitting application built with Node.js, Express, MongoDB, Socket.io, and React. 
+> A full-stack, production-grade expense-splitting web app with real-time sync, async email notifications, and a greedy debt-minimizing algorithm.
 
-This document explains the core architectural designs, math calculations, and algorithms that govern how expenses are split and how balances are settled in the application.
-
----
-
-## 🏗️ Architecture & Core Concepts
-
-### 1. The Balance Sheet Design (Cached Balances)
-Instead of scanning every transaction in the database whenever a user visits their group dashboard, this application uses a **cached-on-write balance engine**.
-* Running balances are stored directly in the `Group` model in a `balances` array:
-  ```json
-  "balances": [
-    { "user": "Alice_ID", "balance": 60.00 },
-    { "user": "Bob_ID", "balance": -10.00 },
-    { "user": "Charlie_ID", "balance": -50.00 }
-  ]
-  ```
-* **Positive Balance ($+$)**: Creditor (owed money).
-* **Negative Balance ($-$)**: Debtor (owes money).
-* **Net-Zero Rule**: In any group, the sum of all members' balances must always equal **exactly 0**.
-* **Transactions Updates**:
-  * **On Creation**: The payer's balance increases by the total amount. Split participants' balances decrease by their individual shares.
-  * **On Deletion**: The inverse operation is performed (reverting the credit from the payer and debt from participants).
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![BullMQ](https://img.shields.io/badge/BullMQ-FF6B6B?style=for-the-badge)
 
 ---
 
-## 🧮 Splitting Mechanics
+## ✨ Features
 
-The application supports three split modes:
-
-### A. Equal Split (`EQUAL`)
-* **Concept**: The total amount is divided equally among selected participants.
-* **Cents Rounding Safety**: When dividing decimal currencies (e.g. dividing \$10.00 among 3 users), standard division yields infinite decimals ($3.3333...$). If we round everyone to \$3.33, \$0.01 is lost. 
-* **Our Solution**: The backend calculates the floor share (\$3.33) and distributes the remainder cents one-by-one to participants (e.g. User 1 pays \$3.34, User 2 pays \$3.33, User 3 pays \$3.33), satisfying the exact receipt total.
-
-### B. Percentage Split (`PERCENT`)
-* **Concept**: Users specify the exact share percentage each participant owes (e.g. 50% / 30% / 20%).
-* **Validation**: The sum of percentages must equal exactly **100%**.
-* **Rounding Protection**: Share amounts are computed as `(percentage / 100) * totalAmount`, rounded to 2 decimals. The first participant's share is adjusted for any minor decimal difference between the sum of shares and the total amount.
-
-### C. Exact Split (`EXACT`)
-* **Concept**: Users input custom amounts for selected members directly (e.g., Alice owes \$15, Bob owes \$25).
-* **Dynamic Amount Calculation**: To maximize user convenience, the total expense amount is calculated dynamically as the **sum of all individual split inputs**. Payer gets credited this calculated total sum, and members are debited their input amounts.
+- 🔐 **JWT Authentication** — Secure register/login with bcrypt password hashing and rate-limited endpoints
+- 👥 **Group Management** — Create groups, invite members via email or shareable invite links, leave/remove members
+- 💰 **Flexible Expense Splitting** — Equal, percentage-based, or exact-amount splits with automatic total calculation
+- ⚡ **Real-Time Sync** — Socket.io broadcasts expense additions and settlements instantly across all active group members
+- 🧮 **Greedy Settle-Up Algorithm** — Resolves all group debts with the mathematically minimum number of transactions
+- 📧 **Async Email Notifications** — BullMQ + Redis queue sends debt reminder emails in the background via Nodemailer
+- 📩 **Email Invitations** — Invite users to groups via email; in-app "Pending Invitations" banner to accept/decline
+- 🛡️ **Security Hardened** — Helmet, CORS, and per-route rate limiting on all auth endpoints
 
 ---
 
-## 🤝 Settle-Up Engine (Greedy Debt Minimizer)
+## 🧮 The Settle-Up Algorithm
 
-Rather than forcing users to make dozens of individual peer-to-peer transfers, we run a **Greedy Debt Minimization Algorithm** to find the absolute minimum number of transactions needed to resolve all debts.
+All group expenses are aggregated into a **net-balance map** per member. A greedy two-pointer approach then repeatedly pairs the largest creditor with the largest debtor, resolving each pair in a single transaction.
 
-### 📝 Tracing Example
-Assume a group contains **Alice**, **Bob**, and **Charlie** with the following balance sheet:
-* **Alice**: $+\$60$
-* **Bob**: $-\$10$
-* **Charlie**: $-\$50$
+This guarantees the **minimum possible number of payments** to settle all debts — an O(n log n) solution using a max-heap approach.
 
-The algorithm works as follows:
-1. **Categorize and Sort**:
-   * **Creditors**: `[ { Alice, owed $60 } ]`
-   * **Debtors**: `[ { Charlie, owes $50 }, { Bob, owes $10 } ]` (Sorted descending)
-2. **Greedy Matching**:
-   * Match the largest debtor (**Charlie**, owes \$50) with the largest creditor (**Alice**, owed \$60).
-   * Transaction: **Charlie pays Alice \$50**.
-   * Update: Charlie is settled (\$0). Alice is still owed $\$60 - \$50 = \$10$.
-   * Match the next largest debtor (**Bob**, owes \$10) with the remaining creditor (**Alice**, owed \$10).
-   * Transaction: **Bob pays Alice \$10**.
-   * Update: Everyone is fully settled (\$0).
-3. **Optimized Outcome**: Instead of a complex web of transactions, the algorithm outputs exactly 2 payments to resolve the group.
+---
 
-### 💻 Algorithm Implementation
-```javascript
-function getSettlements(balances) {
-  let creditors = [];
-  let debtors = [];
+## 🏗️ Architecture
 
-  // Separate and clean floating errors
-  balances.forEach(b => {
-    const amount = Math.round(b.balance * 100) / 100;
-    if (amount > 0) {
-      creditors.push({ user: b.user, amount });
-    } else if (amount < 0) {
-      debtors.push({ user: b.user, amount: -amount });
-    }
-  });
-
-  // Sort highest to lowest
-  creditors.sort((a, b) => b.amount - a.amount);
-  debtors.sort((a, b) => b.amount - a.amount);
-
-  const transactions = [];
-  let i = 0, j = 0;
-
-  while (i < creditors.length && j < debtors.length) {
-    const creditor = creditors[i];
-    const debtor = debtors[j];
-
-    if (creditor.amount < 0.01) { i++; continue; }
-    if (debtor.amount < 0.01) { j++; continue; }
-
-    const settledAmount = Math.min(creditor.amount, debtor.amount);
-    transactions.push({
-      from: debtor.user,
-      to: creditor.user,
-      amount: Math.round(settledAmount * 100) / 100
-    });
-
-    creditor.amount -= settledAmount;
-    debtor.amount -= settledAmount;
-
-    if (creditor.amount < 0.01) i++;
-    if (debtor.amount < 0.01) j++;
-  }
-
-  return transactions;
-}
 ```
+ExpenseSplitter/
+├── server/                     # Node.js + Express backend
+│   ├── config/                 # DB, Redis, Socket.io, BullMQ config
+│   ├── controllers/            # Route handlers (thin layer)
+│   ├── services/               # Core business logic
+│   ├── routes/                 # Express routers
+│   ├── middleware/             # JWT auth middleware
+│   └── model/                  # Mongoose schemas (User, Group, Expense)
+│
+└── frontend/                   # React 19 + Vite frontend
+    └── src/
+        ├── pages/              # Home, Auth, Dashboard, GroupDetails, JoinGroup, About
+        ├── context/            # Global state + Socket.io (DataContext)
+        ├── utils/              # Axios client with JWT interceptors
+        └── services/           # Frontend API service modules
+```
+
+**Pattern**: Route → Controller → Service (layered architecture separating HTTP handling from business logic)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js v18+
+- MongoDB (local or Atlas)
+- Redis (local)
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/ExpenseSplitter.git
+cd ExpenseSplitter
+```
+
+### 2. Backend Setup
+
+```bash
+cd server
+npm install
+```
+
+Create a `.env` file inside `/server`:
+
+```env
+PORT=8000
+MONGO_URI=mongodb://localhost:27017/expensesplitter
+JWT_SECRET=your_jwt_secret_here
+CLIENT_URL=http://localhost:5173
+
+# Nodemailer SMTP
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+```
+
+Start the backend (Redis + server together):
+
+```bash
+npm run dev
+```
+
+### 3. Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The app will be available at **http://localhost:5173**
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, Vite, Tailwind CSS v4, Framer Motion, Recharts |
+| Backend | Node.js, Express v5, JWT, Helmet, CORS, Rate Limiting |
+| Database | MongoDB, Mongoose ODM |
+| Real-time | Socket.io |
+| Async Jobs | Redis, BullMQ, Nodemailer |
+| Dev Tools | Nodemon, Concurrently, MongoDB Compass |
+
+---
+
+## 📄 License
+
+MIT

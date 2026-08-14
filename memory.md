@@ -93,18 +93,20 @@ Completed and tested JWT register, login, and protected me endpoints.
 
 ---
 
-## 🎯 Next Steps
-*   **Step 1**: Restart your Node.js backend server (`node server.js` or `npm run dev`) so all new routes and controller updates are loaded.
-*   **Step 2**: Test sending an invite by email and accepting it from the new **Pending Group Invitations** banner on the Dashboard!
+### Phase 7: Resume-Ready Cleanup — ✅ COMPLETE
+*   [x] Installed `helmet`, `express-rate-limit`, `cors` on backend.
+*   [x] Updated [server.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/server.js): removed dev `/home` endpoint, added `helmet`, `cors`, global error handler, fixed default port to `8000`.
+*   [x] Applied `authLimiter` (10 req / 15 min) to `POST /register` and `POST /login` in [auth.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/auth.js).
+*   [x] Deleted `Test.jsx` dev page and removed its route + export.
+*   [x] Rewrote [About.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/About.jsx) as a polished tech-stack showcase page (features, stack cards, algorithm explainer).
+*   [x] Fixed [Home.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/Home.jsx): "Demo Sandbox" → "See How It Works" → links to `/about`.
+*   [x] Rewrote [README.md](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/README.md) with tech badges, features, architecture, and setup instructions.
 
 ---
 
-## 🗺️ Remaining Road Map
-*   **Phase 6 (Optional/Future)**: Production deployment setup & Resend/SendGrid transactional email integration.
+## 🎯 Project Status: ✅ COMPLETE & RESUME-READY
 
-
-
----
+All planned phases are done. The project is clean, hardened, and documented.
 
 ## 💡 Revision Notes: Frontend-Backend Connection Details
 

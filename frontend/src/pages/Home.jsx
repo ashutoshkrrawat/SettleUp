@@ -60,10 +60,10 @@ export default function Home() {
             <ArrowRight className="w-5 h-5" />
           </button>
           <button
-            onClick={() => navigate('/auth')}
+            onClick={() => navigate('/about')}
             className="px-8 py-4 bg-card text-foreground rounded-2xl border border-border hover:bg-secondary font-bold transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            Demo Sandbox
+            See How It Works
           </button>
         </div>
 
@@ -109,7 +109,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="py-8 text-center text-sm text-muted-foreground border-t border-border/10">
-        <p>© 2026 Splitter. Designed with premium aesthetics.</p>
+        <p>© 2025 Splitter. Built with Node.js, React, MongoDB & Socket.io.</p>
       </footer>
     </div>
   );
