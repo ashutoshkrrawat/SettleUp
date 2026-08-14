@@ -113,6 +113,14 @@ Completed and tested JWT register, login, and protected me endpoints.
 
 ---
 
+### Phase 9: In-App Razorpay & UPI Payments — ✅ COMPLETE
+*   [x] Created `paymentService.js` on backend with Razorpay SDK integration, HMAC-SHA256 signature verification, and sandbox simulation mode.
+*   [x] Mounted `POST /api/payments/create-order` and `POST /api/payments/verify` in [paymentController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/paymentController.js) and [payment.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/payment.js).
+*   [x] Created frontend [paymentService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/paymentService.js) to dynamically load Razorpay Checkout SDK.
+*   [x] Integrated **"Pay Now (Razorpay / UPI)"** button into [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx) with automatic settlement and Socket.io real-time broadcast upon payment completion.
+
+---
+
 ## 🎯 Project Status: ✅ COMPLETE & RESUME-READY
 
 All planned phases are done. The project is clean, hardened, and documented.

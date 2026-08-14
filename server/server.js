@@ -30,6 +30,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/expenses', expenseRoutes);
+app.use('/api/payments', require('./routes/payment'));
 
 // Global error handler
 app.use((err, req, res, next) => {
