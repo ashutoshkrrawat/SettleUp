@@ -17,7 +17,9 @@ import {
   Zap,
   Layers,
   ArrowUpRight,
-  BellRing
+  BellRing,
+  BarChart3,
+  Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
@@ -84,12 +86,15 @@ export default function Dashboard() {
 
   const netBalance = totalOwedToYou - totalOwed;
 
+  // Calculate total logged expenses
+  const totalLoggedExpensesAmount = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
   // Recharts data for expenses per group
   const recentActivitiesData = groups.map((g) => {
     const groupExpenses = expenses.filter(e => e.group === g._id);
-    const totalAmount = groupExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const totalAmount = groupExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
     return {
-      name: g.name.length > 10 ? g.name.substring(0, 9) + '..' : g.name,
+      name: g.name.length > 8 ? g.name.substring(0, 7) + '..' : g.name,
       Amount: totalAmount
     };
   });
@@ -123,7 +128,7 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-[32px] border border-primary/30 bg-primary/10 p-6 space-y-4 shadow-[0_12px_38px_rgba(0,0,0,0.05)]"
+          className="rounded-[32px] border border-primary/30 bg-primary/10 p-6 space-y-4 shadow-sm"
         >
           <div className="flex items-center gap-2.5 text-primary">
             <BellRing className="w-5 h-5 animate-bounce" />
@@ -169,7 +174,7 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-[32px] border border-amber-500/30 bg-amber-500/10 p-6 space-y-4 shadow-[0_12px_38px_rgba(0,0,0,0.05)]"
+          className="rounded-[32px] border border-amber-500/30 bg-amber-500/10 p-6 space-y-4 shadow-sm"
         >
           <div className="flex items-center gap-2.5 text-amber-600 dark:text-amber-400">
             <Sparkles className="w-5 h-5" />
@@ -217,36 +222,42 @@ export default function Dashboard() {
         </motion.div>
       )}
 
-      {/* 12-Column Bento Grid Stat Widgets */}
+      {/* 4 Minimal Stat Cards */}
       <div className="grid grid-cols-12 gap-4 md:gap-5">
-        {/* Net Balance Card (4 cols) */}
-        <DashboardCard delay={0.05} className="col-span-12 sm:col-span-6 lg:col-span-3 bg-gradient-to-b from-amber-500/10 to-transparent">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-secondary border border-border text-muted-foreground">
-              Net Balance
+        {/* Net Balance Card */}
+        <DashboardCard
+          delay={0.05}
+          className="col-span-12 sm:col-span-6 lg:col-span-3 border border-border/70 bg-card p-6 flex flex-col justify-between h-[200px]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-secondary border border-border/60 text-muted-foreground">
+              NET BALANCE
             </span>
-            <div className="w-9 h-9 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center text-primary font-bold">
               <DollarSign className="w-5 h-5 stroke-[2.5]" />
             </div>
           </div>
           <div>
-            <h2 className={`text-3xl font-black tracking-tight ${netBalance >= 0 ? 'text-primary' : 'text-rose-500'}`}>
+            <h2 className={`text-3xl font-black tracking-tight ${netBalance >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
               {netBalance >= 0 ? '+' : ''}${netBalance.toFixed(2)}
             </h2>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground font-normal mt-1 flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-primary" />
               <span>Optimized Settle Up engine</span>
             </p>
           </div>
         </DashboardCard>
 
-        {/* You Are Owed Card (4 cols) */}
-        <DashboardCard delay={0.1} className="col-span-12 sm:col-span-6 lg:col-span-3 bg-gradient-to-b from-emerald-500/10 to-transparent">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-secondary border border-border text-muted-foreground">
-              You Are Owed
+        {/* You Are Owed Card */}
+        <DashboardCard
+          delay={0.1}
+          className="col-span-12 sm:col-span-6 lg:col-span-3 border border-border/70 bg-card p-6 flex flex-col justify-between h-[200px]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-secondary border border-border/60 text-muted-foreground">
+              YOU ARE OWED
             </span>
-            <div className="w-9 h-9 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center text-emerald-500 font-bold">
               <TrendingUp className="w-5 h-5 stroke-[2.5]" />
             </div>
           </div>
@@ -254,17 +265,20 @@ export default function Dashboard() {
             <h2 className="text-3xl font-black tracking-tight text-emerald-500">
               ${totalOwedToYou.toFixed(2)}
             </h2>
-            <p className="text-xs text-muted-foreground mt-1">Outstanding group debts</p>
+            <p className="text-xs text-muted-foreground font-normal mt-1">Outstanding group debts</p>
           </div>
         </DashboardCard>
 
-        {/* You Owe Card (4 cols) */}
-        <DashboardCard delay={0.15} className="col-span-12 sm:col-span-6 lg:col-span-3 bg-gradient-to-b from-rose-500/10 to-transparent">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-secondary border border-border text-muted-foreground">
-              You Owe
+        {/* You Owe Card */}
+        <DashboardCard
+          delay={0.15}
+          className="col-span-12 sm:col-span-6 lg:col-span-3 border border-border/70 bg-card p-6 flex flex-col justify-between h-[200px]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-secondary border border-border/60 text-muted-foreground">
+              YOU OWE
             </span>
-            <div className="w-9 h-9 rounded-2xl bg-rose-500/15 text-rose-500 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center text-rose-500 font-bold">
               <TrendingDown className="w-5 h-5 stroke-[2.5]" />
             </div>
           </div>
@@ -272,17 +286,20 @@ export default function Dashboard() {
             <h2 className="text-3xl font-black tracking-tight text-rose-500">
               ${totalOwed.toFixed(2)}
             </h2>
-            <p className="text-xs text-muted-foreground mt-1">Pending settle-up obligations</p>
+            <p className="text-xs text-muted-foreground font-normal mt-1">Pending settle-up obligations</p>
           </div>
         </DashboardCard>
 
-        {/* Active Groups Count Card (4 cols) */}
-        <DashboardCard delay={0.2} className="col-span-12 sm:col-span-6 lg:col-span-3 bg-gradient-to-b from-blue-500/10 to-transparent">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-secondary border border-border text-muted-foreground">
-              Active Pools
+        {/* Active Pools Card */}
+        <DashboardCard
+          delay={0.2}
+          className="col-span-12 sm:col-span-6 lg:col-span-3 border border-border/70 bg-card p-6 flex flex-col justify-between h-[200px]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-secondary border border-border/60 text-muted-foreground">
+              ACTIVE POOLS
             </span>
-            <div className="w-9 h-9 rounded-2xl bg-blue-500/15 text-blue-500 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center text-primary font-bold">
               <Users className="w-5 h-5 stroke-[2.5]" />
             </div>
           </div>
@@ -290,7 +307,7 @@ export default function Dashboard() {
             <h2 className="text-3xl font-black tracking-tight text-foreground">
               {groups.length}
             </h2>
-            <p className="text-xs text-muted-foreground mt-1">Participating split groups</p>
+            <p className="text-xs text-muted-foreground font-normal mt-1">Participating split groups</p>
           </div>
         </DashboardCard>
       </div>
@@ -316,7 +333,7 @@ export default function Dashboard() {
                   key={group._id}
                   delay={0.1 + idx * 0.05}
                   onClick={() => navigate(`/group/${group._id}`)}
-                  className="cursor-pointer group h-[200px]"
+                  className="cursor-pointer group h-[190px]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -357,40 +374,59 @@ export default function Dashboard() {
           <h2 className="text-lg font-black tracking-tight text-foreground">
             Expense Analytics
           </h2>
-          <DashboardCard className="h-[430px] flex flex-col justify-between">
+          <DashboardCard className="h-[415px] flex flex-col justify-between">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-secondary border border-border text-muted-foreground block w-max mb-4">
                 Pool Totals by Group
               </span>
-              <div className="h-[280px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={recentActivitiesData}>
-                    <XAxis
-                      dataKey="name"
-                      stroke="var(--muted-foreground)"
-                      fontSize={11}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(243, 200, 76, 0.08)' }}
-                      contentStyle={{
-                        background: 'var(--card)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '1.25rem',
-                        color: 'var(--foreground)',
-                        fontFamily: 'Poppins',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Bar
-                      dataKey="Amount"
-                      fill="var(--primary)"
-                      radius={[8, 8, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+
+              {totalLoggedExpensesAmount > 0 ? (
+                <div className="h-[270px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={recentActivitiesData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                      <YAxis
+                        stroke="var(--muted-foreground)"
+                        fontSize={10}
+                        tickLine={false}
+                        axisLine={false}
+                        domain={[0, 'auto']}
+                      />
+                      <XAxis
+                        dataKey="name"
+                        stroke="var(--muted-foreground)"
+                        fontSize={11}
+                        tickLine={false}
+                        axisLine={false}
+                        dy={8}
+                      />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(243, 200, 76, 0.08)' }}
+                        contentStyle={{
+                          background: 'var(--card)',
+                          border: '1px solid var(--border)',
+                          borderRadius: '1.25rem',
+                          color: 'var(--foreground)',
+                          fontFamily: 'Poppins',
+                          fontSize: '12px'
+                        }}
+                      />
+                      <Bar
+                        dataKey="Amount"
+                        fill="var(--primary)"
+                        radius={[8, 8, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-[270px] w-full flex flex-col items-center justify-center text-center p-4 rounded-2xl bg-secondary/30 border border-border/40">
+                  <BarChart3 className="w-10 h-10 text-muted-foreground/40 mb-3" />
+                  <h4 className="font-bold text-xs text-foreground">No Expenses Logged Yet</h4>
+                  <p className="text-[11px] text-muted-foreground max-w-[200px] mt-1 font-light">
+                    Add expenses to your group pools to visualize group totals.
+                  </p>
+                </div>
+              )}
             </div>
             <div className="text-xs text-muted-foreground flex items-center justify-between pt-3 border-t border-border/40">
               <span className="flex items-center gap-1.5">

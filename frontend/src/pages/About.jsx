@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Server, Database, Zap, Mail, Shield, GitBranch,
-  ArrowLeft, ExternalLink, Layers, Globe, Clock
+  ExternalLink, Layers, Globe, Clock
 } from 'lucide-react';
 import NavBar from '../components/NavBar';
 import DashboardCard from '../components/DashboardCard';
@@ -10,55 +10,43 @@ import DashboardCard from '../components/DashboardCard';
 const techStack = [
   {
     category: 'Frontend',
-    icon: <Globe className="w-5 h-5" />,
-    color: 'from-sky-500/15 to-transparent border-sky-500/30',
-    iconColor: 'text-sky-400',
+    icon: <Globe className="w-4 h-4 text-primary" />,
     items: ['React 19', 'Vite', 'Tailwind CSS v4', 'Framer Motion', 'Recharts', 'Lucide Icons', 'React Router v7'],
   },
   {
     category: 'Backend',
-    icon: <Server className="w-5 h-5" />,
-    color: 'from-emerald-500/15 to-transparent border-emerald-500/30',
-    iconColor: 'text-emerald-400',
+    icon: <Server className="w-4 h-4 text-primary" />,
     items: ['Node.js', 'Express v5', 'JWT Authentication', 'Helmet', 'CORS', 'Rate Limiting', 'bcryptjs'],
   },
   {
     category: 'Database',
-    icon: <Database className="w-5 h-5" />,
-    color: 'from-violet-500/15 to-transparent border-violet-500/30',
-    iconColor: 'text-violet-400',
+    icon: <Database className="w-4 h-4 text-primary" />,
     items: ['MongoDB', 'Mongoose ODM', 'Compass (local dev)'],
   },
   {
     category: 'Real-time',
-    icon: <Zap className="w-5 h-5" />,
-    color: 'from-amber-500/15 to-transparent border-amber-500/30',
-    iconColor: 'text-amber-400',
+    icon: <Zap className="w-4 h-4 text-primary" />,
     items: ['Socket.io', 'Live expense sync', 'Instant settle-up broadcast'],
   },
   {
     category: 'Async Jobs',
-    icon: <Clock className="w-5 h-5" />,
-    color: 'from-rose-500/15 to-transparent border-rose-500/30',
-    iconColor: 'text-rose-400',
+    icon: <Clock className="w-4 h-4 text-primary" />,
     items: ['Redis', 'BullMQ Queue', 'Nodemailer', 'Background email worker'],
   },
   {
     category: 'Architecture',
-    icon: <Layers className="w-5 h-5" />,
-    color: 'from-blue-500/15 to-transparent border-blue-500/30',
-    iconColor: 'text-blue-400',
+    icon: <Layers className="w-4 h-4 text-primary" />,
     items: ['Route-Controller-Service pattern', 'Context API + custom hooks', 'Axios interceptors', 'JWT + localStorage'],
   },
 ];
 
 const features = [
-  { icon: <Shield className="w-4 h-4" />, text: 'JWT authentication with bcrypt password hashing' },
-  { icon: <GitBranch className="w-4 h-4" />, text: 'Greedy transaction-minimizing settle-up algorithm' },
-  { icon: <Zap className="w-4 h-4" />, text: 'Real-time updates via Socket.io across all group members' },
-  { icon: <Mail className="w-4 h-4" />, text: 'Email invitations & debt reminder notifications via BullMQ + Nodemailer' },
-  { icon: <Layers className="w-4 h-4" />, text: 'Equal, percentage, and exact expense splitting modes' },
-  { icon: <Globe className="w-4 h-4" />, text: 'Invite links with unique codes for frictionless group joining' },
+  { icon: <Shield className="w-4 h-4 text-primary" />, text: 'JWT authentication with bcrypt password hashing' },
+  { icon: <GitBranch className="w-4 h-4 text-primary" />, text: 'Greedy transaction-minimizing settle-up algorithm' },
+  { icon: <Zap className="w-4 h-4 text-primary" />, text: 'Real-time updates via Socket.io across all group members' },
+  { icon: <Mail className="w-4 h-4 text-primary" />, text: 'Email invitations & debt reminder notifications via BullMQ + Nodemailer' },
+  { icon: <Layers className="w-4 h-4 text-primary" />, text: 'Equal, percentage, and exact expense splitting modes' },
+  { icon: <Globe className="w-4 h-4 text-primary" />, text: 'Invite links with unique codes for frictionless group joining' },
 ];
 
 export default function About() {
@@ -91,28 +79,34 @@ export default function About() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {features.map((f, i) => (
             <DashboardCard key={i} delay={0.05 * i} className="p-4 flex flex-row items-center gap-3">
-              <div className="text-primary shrink-0">{f.icon}</div>
+              <div className="shrink-0">{f.icon}</div>
               <p className="text-xs text-foreground font-medium">{f.text}</p>
             </DashboardCard>
           ))}
         </div>
       </div>
 
-      {/* Tech Stack Grid */}
+      {/* Tech Stack Clean Minimal Grid */}
       <div className="space-y-3">
         <h2 className="text-lg font-black tracking-tight text-foreground">Technical Stack</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {techStack.map((t, idx) => (
-            <DashboardCard key={t.category} delay={0.05 * idx} className={`bg-gradient-to-br ${t.color}`}>
-              <div className={`flex items-center gap-2 font-bold mb-3 ${t.iconColor}`}>
+            <DashboardCard
+              key={t.category}
+              delay={0.05 * idx}
+              className="p-6 border border-border/70 bg-card h-[240px] flex flex-col justify-start gap-4"
+            >
+              <div className="flex items-center gap-2.5">
                 {t.icon}
-                <span className="text-sm font-extrabold">{t.category}</span>
+                <span className="text-base font-extrabold tracking-tight text-foreground">
+                  {t.category}
+                </span>
               </div>
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {t.items.map((item) => (
-                  <li key={item} className="text-xs text-muted-foreground flex items-center gap-2 font-light">
-                    <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60 shrink-0" />
-                    {item}
+                  <li key={item} className="text-xs text-muted-foreground font-normal flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 shrink-0" />
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
