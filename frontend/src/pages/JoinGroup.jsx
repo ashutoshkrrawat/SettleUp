@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { toast } from 'sonner';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import DashboardCard from '../components/DashboardCard';
 
 export default function JoinGroup() {
   const { inviteCode } = useParams();
@@ -12,7 +13,7 @@ export default function JoinGroup() {
   const [joining, setJoining] = useState(false);
 
   useEffect(() => {
-    if (loading) return; // Wait until authentication check is complete
+    if (loading) return;
 
     if (!currentUser) {
       toast.info('Please sign in or register to join the group.');
@@ -38,26 +39,28 @@ export default function JoinGroup() {
 
   if (loading || joining) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-        <h2 className="text-xl font-bold">Joining Group...</h2>
-        <p className="text-muted-foreground text-sm mt-1">Please wait while we add you to the group.</p>
+      <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+        <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+        <h2 className="text-xl font-black text-foreground">Joining Group...</h2>
+        <p className="text-muted-foreground text-xs font-light mt-1">Please wait while we validate your invitation link.</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <AlertCircle className="w-16 h-16 text-orange-500 mb-4" />
-        <h2 className="text-2xl font-black mb-2">Failed to Join Group</h2>
-        <p className="text-muted-foreground mb-6 max-w-md">{error}</p>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl"
-        >
-          Go to Dashboard
-        </button>
+      <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+        <DashboardCard className="max-w-md w-full p-8 flex flex-col items-center text-center space-y-4">
+          <AlertCircle className="w-12 h-12 text-rose-500" />
+          <h2 className="text-2xl font-black text-foreground">Failed to Join Group</h2>
+          <p className="text-muted-foreground text-xs font-light leading-relaxed">{error}</p>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="px-6 py-3 bg-primary text-primary-foreground font-bold text-xs rounded-full shadow-sm hover:scale-105 transition-transform cursor-pointer"
+          >
+            Go to Dashboard
+          </button>
+        </DashboardCard>
       </div>
     );
   }
