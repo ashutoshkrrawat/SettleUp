@@ -13,6 +13,8 @@ This file is a handoff document to persist state, progress, and instructions bet
     3. Provide complete, formatted code templates and snippets in chat for the developer to write/paste.
     4. Review their code, explain why bugs occur, and help them debug.
 *   **Mandatory Memory Update Rule**: You MUST update `memory.md` whenever new progress is made, code/file structure changes, or new instructions are given, ensuring context and state are fully preserved across sessions.
+*   **Doubts & Concepts Journaling Rule**: Maintain [doubts.md](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/doubts.md) in the root directory. Whenever the developer asks a conceptual question or doubt, document the question, detailed explanation, and key takeaways in `doubts.md` to preserve learned concepts across sessions.
+*   **Interactive Questioning Rule**: Ask interactive questions while creating or walking through files together to check understanding, confirm design choices, and make learning active.
 
 ---
 
@@ -113,11 +115,12 @@ Completed and tested JWT register, login, and protected me endpoints.
 
 ---
 
-### Phase 9: In-App Razorpay & UPI Payments — ✅ COMPLETE
-*   [x] Created `paymentService.js` on backend with Razorpay SDK integration, HMAC-SHA256 signature verification, and sandbox simulation mode.
-*   [x] Mounted `POST /api/payments/create-order` and `POST /api/payments/verify` in [paymentController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/paymentController.js) and [payment.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/payment.js).
-*   [x] Created frontend [paymentService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/paymentService.js) to dynamically load Razorpay Checkout SDK.
-*   [x] Integrated **"Pay Now (Razorpay / UPI)"** button into [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx) with automatic settlement and Socket.io real-time broadcast upon payment completion.
+### Phase 9: AI Receipt Vision Analyzer — ✅ COMPLETE & VERIFIED
+*   [x] Added `parseReceiptImage` to [aiService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/aiService.js) using Gemini 2.5 Flash (`gemini-2.5-flash`) multimodal image `inlineData` input.
+*   [x] Mounted `POST /api/expenses/analyze-receipt` controller handler and route protected by JWT `protect` middleware in [expenseController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/expenseController.js) and [expense.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/expense.js).
+*   [x] Added `analyzeReceipt` service call in [expenseService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/expenseService.js).
+*   [x] Built interactive [ReceiptModal.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/components/ReceiptModal.jsx) with Base64 preview, Gemini Vision scanner, prefilled confirmation form, and database sync.
+*   [x] Integrated "Scan Receipt" button in [NavBar.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/components/NavBar.jsx).
 
 ---
 
@@ -143,4 +146,5 @@ All planned phases are done. The project is clean, hardened, and documented.
 ### 3. State & Socket.io Connection
 *   **Context Provider**: Managed globally via [DataContext.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/context/DataContext.jsx).
 *   **Real-time Synchronization**: When a user logs in, a Socket.io client connection is established. It listens to real-time events (like `expenseAdded`, `settledUp`, `groupUpdated`) and dynamically dispatches updates to the state so that other active group members see changes instantly without page reloads.
+
 

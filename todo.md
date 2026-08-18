@@ -1,0 +1,1 @@
+# add a receipt analyzer like the user can just upload a receipt and the ai will analyze it will automatically add the expense to the respective group.

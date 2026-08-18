@@ -6,7 +6,6 @@
 ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
 ![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![Razorpay](https://img.shields.io/badge/Razorpay-0C2340?style=for-the-badge&logo=razorpay&logoColor=white)
 ![Gemini AI](https://img.shields.io/badge/Gemini_AI-8E75FF?style=for-the-badge&logo=google&logoColor=white)
 ![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
@@ -16,7 +15,6 @@
 
 ## ✨ Features
 
-- 💳 **In-App Razorpay & UPI Payments** — Direct debt settlement via Razorpay Checkout (UPI, Google Pay, PhonePe, Cards, Netbanking) with HMAC-SHA256 signature verification
 - 🎙️ **Voice AI Expense Assistant** — Natural language voice logging (e.g. *"Equally split 1000 rupees for dinner in Goa Trip"*) using Web Speech API & Gemini 2.5 Flash
 - 🔐 **JWT Authentication** — Secure register/login with bcrypt password hashing and rate-limited endpoints
 - 👥 **Group Management** — Create groups, invite members via email or shareable invite links, leave/remove members

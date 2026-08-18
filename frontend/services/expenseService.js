@@ -40,11 +40,23 @@ const getPendingConfirmations = async () => {
   return data;
 };
 
-// 🤖 AI Voice Expense Intent Parser Call
+//AI Voice Expense Intent Parser Call
 const parseVoiceExpense = async (transcript) => {
   const { data } = await api.post('/expenses/ai-parse', { transcript });
   return data;
 };
+
+const parseAudioExpense = async (audioBase64, mimeType = 'audio/webm') => {
+  const { data } = await api.post('/expenses/ai-parse-audio', { audio: audioBase64, mimeType });
+  return data;
+};
+
+// AI Receipt Vision Parser Call
+const analyzeReceipt = async (imageBase64, mimeType = 'image/jpeg') => {
+  const { data } = await api.post('/expenses/analyze-receipt', { image: imageBase64, mimeType });
+  return data;
+};
+
 
 export default {
   getGroupExpenses,
@@ -54,4 +66,6 @@ export default {
   confirmSplitPayment,
   getPendingConfirmations,
   parseVoiceExpense,
+  parseAudioExpense,
+  analyzeReceipt
 };

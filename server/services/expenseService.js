@@ -327,62 +327,10 @@ const deleteExpense = async (expenseId, userId) => {
 
   await group.save();
   await expense.deleteOne();
-  return { 
-      message: 'Expense deleted and group balances updated',
-      groupId: group._id 
-    };
-};
-
-/**
- * Directly confirm a split payment upon successful Razorpay gateway verification
- */
-const settleSplitDirectly = async ({ expenseId, userId }) => {
-  if (!expenseId) return null;
-  const expense = await Expense.findById(expenseId);
-  if (!expense) return null;
-
-  const reqUserIdStr = userId.toString();
-  const splitIndex = expense.splits.findIndex(s => {
-    if (!s || !s.user) return false;
-    const uId = s.user._id ? s.user._id.toString() : s.user.toString();
-    return uId === reqUserIdStr;
-  });
-
-  if (splitIndex === -1) {
-    return null;
-  }
-
-  const splitItem = expense.splits[splitIndex];
-  if (splitItem.status !== 'CONFIRMED') {
-    splitItem.status = 'CONFIRMED';
-
-    const group = await Group.findById(expense.group);
-    if (group) {
-      const debtorIdx = group.balances.findIndex(b => {
-        const uId = b.user._id ? b.user._id.toString() : b.user.toString();
-        return uId === reqUserIdStr;
-      });
-      if (debtorIdx > -1) {
-        group.balances[debtorIdx].balance += splitItem.amount;
-      }
-
-      const expPayerIdStr = expense.paidBy._id ? expense.paidBy._id.toString() : expense.paidBy.toString();
-      const payerIdx = group.balances.findIndex(b => {
-        const uId = b.user._id ? b.user._id.toString() : b.user.toString();
-        return uId === expPayerIdStr;
-      });
-      if (payerIdx > -1) {
-        group.balances[payerIdx].balance -= splitItem.amount;
-      }
-      await group.save();
-    }
-
-    await expense.save();
-  }
-
-  return await Expense.findById(expense._id)
-    .populate('paidBy', 'name email')
-    .populate('splits.user', 'name email');
+  return {
+    message: 'Expense deleted and group balances updated',
+    groupId: group._id
+  };
 };
 
 module.exports = {
@@ -392,7 +340,5 @@ module.exports = {
   deleteExpense,
   markSplitAsPaid,
   respondToSplitPayment,
-  getUserPendingConfirmations,
-  settleSplitDirectly
+  getUserPendingConfirmations
 };
-

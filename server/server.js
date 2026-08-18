@@ -9,6 +9,7 @@ const { initSocket } = require('./config/socket');
 const authRoutes = require('./routes/auth');
 const groupRoutes = require('./routes/group');
 const expenseRoutes = require('./routes/expense');
+const paymentRoutes = require('./routes/payment');
 const { initReminderWorker } = require('./config/reminderWorker');
 
 // Connect to database
@@ -24,13 +25,13 @@ app.use(cors({
 }));
 
 // Body parser
-app.use(express.json());
-
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ limit: '25mb', extended: true }));
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/expenses', expenseRoutes);
-app.use('/api/payments', require('./routes/payment'));
+app.use('/api/payments', paymentRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {

@@ -8,13 +8,16 @@ const {
   markSplitPaid,
   confirmSplitPayment,
   getPendingConfirmations,
-  parseAIExpense
+  parseAIExpense,
+  parseAudioAIExpense,
+  analyzeReceipt
 } = require('../controllers/expenseController');
 
 // @route   POST /api/expenses/ai-parse
 // @desc    Parse natural language voice transcript using Gemini AI & group matcher
 // @access  Private
 router.post('/ai-parse', protect, parseAIExpense);
+router.post('/ai-parse-audio', protect, parseAudioAIExpense);
 
 // @route   GET /api/expenses/pending-confirmations
 // @desc    Get all pending payment confirmations where current user is the payer
@@ -45,5 +48,10 @@ router.patch('/:id/confirm-payment', protect, confirmSplitPayment);
 // @desc    Delete an expense & revert group balances
 // @access  Private
 router.delete('/:id', protect, deleteExpense);
+// @route   POST /api/expenses/analyze-receipt
+// @desc    Analyze receipt photo with Gemini Vision AI
+// @access  Private
+router.post('/analyze-receipt', protect, analyzeReceipt);
+
 
 module.exports = router;

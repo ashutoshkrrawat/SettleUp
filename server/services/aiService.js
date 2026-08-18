@@ -108,7 +108,148 @@ Return ONLY valid JSON matching this schema:
         return fallbackParse(transcript, userGroups);
     }
 }
+/**
+ * Takes recorded microphone audio (base64) and parses it using Gemini 2.5 Flash multimodal audio input.
+ */
+async function parseAudioExpenseIntent(base64Audio, mimeType = 'audio/webm', userGroups = []) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        throw new Error('GEMINI_API_KEY is not configured on the server.');
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+    const groupsSummary = userGroups.map(g => `ID: ${g._id}, Name: "${g.name}"`).join('\n');
+
+    const promptText = `
+You are an AI assistant for an expense-splitting web app.
+Listen to this recorded audio clip carefully and extract the speech transcript and structured expense fields into JSON.
+
+Available Groups:
+${groupsSummary}
+
+Instructions:
+1. Transcribe the audio exact words into "transcript".
+2. Match the best group from Available Groups. Return its ID as "matchedGroupId" and Name as "matchedGroupName".
+3. Extract total numeric amount as a number (e.g. 1000). Return as "amount".
+4. Extract a short clean description (e.g. "Dinner", "Taxi"). Return as "description".
+5. Split scheme: "EQUAL", "EXACT", or "PERCENT". Default to "EQUAL". Return as "splitType".
+
+Return ONLY valid JSON matching this schema:
+{
+  "transcript": "string",
+  "matchedGroupId": "string",
+  "matchedGroupName": "string",
+  "description": "string",
+  "amount": number,
+  "splitType": "EQUAL" | "EXACT" | "PERCENT"
+}
+`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
+            {
+                inlineData: {
+                    mimeType: mimeType,
+                    data: base64Audio
+                }
+            },
+            { text: promptText }
+        ],
+        config: {
+            responseMimeType: 'application/json',
+        }
+    });
+
+    const parsed = JSON.parse(response.text.trim());
+    return {
+        transcript: parsed.transcript || 'Voice Recording',
+        matchedGroupId: parsed.matchedGroupId || userGroups[0]?._id,
+        matchedGroupName: parsed.matchedGroupName || userGroups[0]?.name,
+        description: parsed.description || 'Voice Expense',
+        amount: typeof parsed.amount === 'number' ? parsed.amount : parseFloat(parsed.amount) || 0,
+        splitType: ['EQUAL', 'EXACT', 'PERCENT'].includes(parsed.splitType) ? parsed.splitType : 'EQUAL'
+    };
+}
+
+/**
+ * Takes a base64 encoded receipt image and parses it using Gemini 2.5 Flash multimodal vision input.
+ */
+async function parseReceiptImage(base64Image, mimeType = 'image/jpeg') {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        console.warn('[AI Service] GEMINI_API_KEY not set.');
+        return {
+            description: 'Receipt Expense',
+            amount: 0,
+            splitType: 'EQUAL'
+        };
+    }
+
+    try {
+        const ai = new GoogleGenAI({ apiKey });
+
+        const promptText = `
+You are an AI assistant for an expense-splitting web app.
+Analyze this receipt image carefully and extract structured expense fields into JSON.
+
+Instructions:
+1. Extract the store/vendor name and item summary into a clean "description" (e.g. "D-Mart Groceries", "Starbucks Coffee", "Taxi Ride").
+2. Extract the final total numeric amount paid as a number (e.g. 1450.50). Return as "amount".
+3. Determine the split scheme: "EQUAL", "EXACT", or "PERCENT". Default to "EQUAL". Return as "splitType".
+
+Return ONLY valid JSON matching this schema:
+{
+  "description": "string",
+  "amount": number,
+  "splitType": "EQUAL" | "EXACT" | "PERCENT"
+}
+`;
+
+        // Safely extract base64 string regardless of prefix
+        const cleanBase64 = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
+
+        // Ensure valid mimeType format
+        let safeMime = mimeType || 'image/jpeg';
+        if (safeMime === 'image/jpg') safeMime = 'image/jpeg';
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [
+                {
+                    inlineData: {
+                        mimeType: safeMime,
+                        data: cleanBase64
+                    }
+                },
+                { text: promptText }
+            ],
+            config: {
+                responseMimeType: 'application/json',
+            }
+        });
+
+        let jsonText = (response.text || '').trim();
+        jsonText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
+
+        const parsed = JSON.parse(jsonText);
+        return {
+            description: parsed.description || 'Receipt Expense',
+            amount: typeof parsed.amount === 'number' ? parsed.amount : parseFloat(parsed.amount) || 0,
+            splitType: ['EQUAL', 'EXACT', 'PERCENT'].includes(parsed.splitType) ? parsed.splitType : 'EQUAL'
+        };
+    } catch (err) {
+        console.error('[AI Service] parseReceiptImage Error:', err.message);
+        return {
+            description: 'Receipt Expense',
+            amount: 0,
+            splitType: 'EQUAL'
+        };
+    }
+}
 
 module.exports = {
-    parseVoiceExpenseIntent
+    parseVoiceExpenseIntent,
+    parseAudioExpenseIntent,
+    parseReceiptImage
 };

@@ -1,6 +1,7 @@
 const expenseService = require('../services/expenseService');
 const groupService = require('../services/groupService');
 const aiService = require('../services/aiService');
+const Group = require('../model/Group');
 const { getIO } = require('../config/socket');
 
 const createExpense = async (req, res) => {
@@ -137,6 +138,62 @@ const parseAIExpense = async (req, res) => {
   }
 };
 
+// @desc    Parse expense intent directly from recorded Base64 audio using Gemini 2.5 Flash
+// @route   POST /api/expenses/ai-parse-audio
+// @access  Private
+const parseAudioAIExpense = async (req, res) => {
+  try {
+    const { audio, mimeType } = req.body;
+    if (!audio) {
+      return res.status(400).json({ success: false, message: 'Audio payload (base64) is required.' });
+    }
+
+    const userGroups = await Group.find({ members: req.user._id })
+      .select('_id name members')
+      .lean();
+
+    const parsedIntent = await aiService.parseAudioExpenseIntent(audio, mimeType || 'audio/webm', userGroups);
+
+    res.status(200).json({
+      success: true,
+      data: parsedIntent
+    });
+  } catch (error) {
+    console.error('Audio AI Expense controller error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process audio recording with Gemini AI.'
+    });
+  }
+};
+
+// @desc    Analyze receipt image using Gemini 2.5 Flash multimodal vision
+// @route   POST /api/expenses/analyze-receipt
+// @access  Private
+const analyzeReceipt = async (req, res) => {
+  try {
+    const { image, mimeType } = req.body;
+    if (!image) {
+      return res.status(400).json({ success: false, message: 'Receipt image payload (base64) is required.' });
+    }
+
+    const parsedData = await aiService.parseReceiptImage(image, mimeType || 'image/jpeg');
+
+    res.status(200).json({
+      success: true,
+      data: parsedData
+    });
+  } catch (error) {
+    console.error('Receipt AI Expense controller error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to analyze receipt image with Gemini AI.'
+    });
+  }
+};
+
+
+
 module.exports = {
   createExpense,
   getGroupExpenses,
@@ -144,5 +201,7 @@ module.exports = {
   markSplitPaid,
   confirmSplitPayment,
   getPendingConfirmations,
-  parseAIExpense
+  parseAIExpense,
+  parseAudioAIExpense,
+  analyzeReceipt
 };

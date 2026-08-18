@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
-import { Sparkles, Moon, Sun, ArrowLeft, Plus, Users, ShieldCheck, Mic } from 'lucide-react';
+import { Sparkles, Moon, Sun, ArrowLeft, Plus, Users, ShieldCheck, Mic, Receipt } from 'lucide-react';
 import VoiceAIModal from './VoiceAIModal';
+import ReceiptModal from './ReceiptModal';
 
 export default function NavBar({ title, subtitle, onActionClick, actionLabel, actionIcon: ActionIcon }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, theme, toggleTheme } = useData();
   const [showVoiceAI, setShowVoiceAI] = useState(false);
+  const [showReceiptAI, setShowReceiptAI] = useState(false);
 
   const showBack = location.pathname.startsWith('/group/') || location.pathname === '/about';
 
@@ -44,11 +46,23 @@ export default function NavBar({ title, subtitle, onActionClick, actionLabel, ac
         </div>
 
         <div className="flex items-center gap-2.5">
+          {/* Receipt AI Button */}
+          {currentUser && (
+            <button
+              onClick={() => setShowReceiptAI(true)}
+              className="h-11 px-3.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-600 dark:text-purple-400 font-bold text-xs flex items-center gap-2 hover:bg-purple-500/25 transition-all cursor-pointer"
+              title="Scan Receipt AI"
+            >
+              <Receipt className="w-4 h-4" />
+              <span className="hidden md:inline">Scan Receipt</span>
+            </button>
+          )}
+
           {/* AI Voice Assistant Button */}
           {currentUser && (
             <button
               onClick={() => setShowVoiceAI(true)}
-              className="h-11 px-4 rounded-full bg-primary/15 border border-primary/30 text-primary font-bold text-xs flex items-center gap-2 hover:bg-primary/25 transition-all cursor-pointer"
+              className="h-11 px-3.5 rounded-full bg-primary/15 border border-primary/30 text-primary font-bold text-xs flex items-center gap-2 hover:bg-primary/25 transition-all cursor-pointer"
               title="Voice AI Assistant"
             >
               <Mic className="w-4 h-4 text-primary animate-pulse" />
@@ -80,6 +94,12 @@ export default function NavBar({ title, subtitle, onActionClick, actionLabel, ac
       <VoiceAIModal
         isOpen={showVoiceAI}
         onClose={() => setShowVoiceAI(false)}
+      />
+
+      {/* Receipt Scanner AI Modal */}
+      <ReceiptModal
+        isOpen={showReceiptAI}
+        onClose={() => setShowReceiptAI(false)}
       />
     </>
   );
