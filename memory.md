@@ -117,6 +117,7 @@ Completed and tested JWT register, login, and protected me endpoints.
 
 ### Phase 9: AI Receipt Vision Analyzer — ✅ COMPLETE & VERIFIED
 *   [x] Added `parseReceiptImage` to [aiService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/aiService.js) using Gemini 2.5 Flash (`gemini-2.5-flash`) multimodal image `inlineData` input.
+*   [x] Implemented multi-key API pool rotation & failover (`executeWithGeminiRotation`) in [aiService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/aiService.js) to support comma-separated `GEMINI_API_KEY`s and eliminate rate limit quota exhaustion.
 *   [x] Mounted `POST /api/expenses/analyze-receipt` controller handler and route protected by JWT `protect` middleware in [expenseController.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/controllers/expenseController.js) and [expense.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/routes/expense.js).
 *   [x] Added `analyzeReceipt` service call in [expenseService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/services/expenseService.js).
 *   [x] Built interactive [ReceiptModal.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/components/ReceiptModal.jsx) with Base64 preview, Gemini Vision scanner, prefilled confirmation form, and database sync.

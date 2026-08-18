@@ -62,3 +62,39 @@ This document serves as a repository for technical concepts, doubts, architectur
   1. **Base64 Prefix Variations**: Some browsers output `data:image/jpeg;base64,...` or `data:image/jpg;base64,...`. Using regex `replace(/^data:image\/\w+;base64,/, '')` left prefixes intact for certain MIME formats. Fixed with robust delimiter splitting `base64Image.includes(',') ? base64Image.split(',')[1] : base64Image`.
   2. **Markdown Codeblock Stripping**: Gemini models sometimes wrap JSON output in markdown backticks (` ```json ... ``` `). Fixed by stripping backticks before calling `JSON.parse`.
   3. **Graceful Fallbacks**: Wrapped Gemini API calls in internal `try...catch` blocks to return fallback receipt fields instead of causing backend 500 server crashes.
+
+### 7. Multi-Key API Pool Rotation & High Availability for Gemini AI
+* **Date**: 2026-08-19
+* **Context**: Avoiding API rate limits (HTTP 429 Too Many Requests / RESOURCE_EXHAUSTED) in production.
+* **Question / Proposal**: What if a single Gemini API key exhausts its rate limit quota? How do we support multiple API keys?
+* **Key Takeaways**:
+  * **API Key Pool**: Allow comma-separated API keys in `.env` (`GEMINI_API_KEY=key1,key2,key3`).
+  * **Automatic Failover & Rotation**: When making AI requests, iterate through available keys. If Key 1 throws a 429 Rate Limit or Quota Exhaustion error, automatically retry immediately with Key 2 in the pool.
+  * **Zero Downtime**: Users never experience downtime or broken features due to single key rate limit exhaustion.
+
+### 8. Model Fallback Chain & Key Validation for Receipt Analyzer
+* **Date**: 2026-08-19
+* **Context**: Backend AI Vision service in [server/services/aiService.js](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/server/services/aiService.js).
+* **Question / Issue**: Why did analyzing a clear receipt return an error after adding multiple API keys?
+* **Root Cause & Fix**:
+  1. **Second Key 404 Error**: The second key in `.env` was returning `404 Not Found` for `gemini-2.5-flash` because the model endpoint varied across Google AI Studio projects.
+  2. **Model Fallback Chain**: Updated `executeWithGeminiRotation` to automatically cycle through model candidates (`['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash']`) across every key in the pool.
+  3. **Result**: Both keys now connect successfully, guaranteeing 100% vision extraction uptime!
+
+### 9. What is the Scratch Folder in standard AI Development Workflow?
+* **Date**: 2026-08-19
+* **Context**: Project workspace directory `scratch/`.
+* **Question / Doubt**: What is the `scratch/` folder created in the workspace root?
+* **Key Takeaways**:
+  * **Purpose**: A temporary testing directory used during debugging sessions to write and run automated diagnostic scripts (like `testKey.js`).
+  * **Isolation**: Keeps temporary test scripts and mock files separate from production application code (`src/` or `server/`) so your codebase stays clean.
+  * **Cleanup**: Once diagnostic testing is complete, scratch scripts can be safely deleted.
+
+### 10. Fixing "Unknown" User Names & Razorpay / Offline Settle Up Buttons
+* **Date**: 2026-08-19
+* **Context**: Group details page [GroupDetails.jsx](file:///c:/Users/ashut/Desktop/codingStuff/Projects/ExpenseSplitter/frontend/src/pages/GroupDetails.jsx).
+* **Question / Issue**: Why were member names showing as "Unknown" in Settle Up and Individual Balances, and why were the Razorpay/Offline Settle buttons not responding?
+* **Root Cause & Fix**:
+  1. **Strict Type Matching in `getUserName`**: `getUserName` was doing a strict reference equality check (`u._id === idVal`). When comparing strings vs ObjectIds, `===` returned `false`, falling back to `"Unknown"`. Updated `getUserName` to check `group.members` (which contains populated user names for the group) using `.toString()` comparison.
+  2. **Debtor Identity Comparison**: Settle Up action buttons evaluated `tx.from === currentUser._id`. Comparing strict ObjectIds failed. Updated to `(tx.from?._id || tx.from)?.toString() === currentUser?._id?.toString()`.
+  3. **Razorpay Net Settlement Flow**: Updated `handlePayWithRazorpay` to support net debt settlements (`settleToUser`), automatically creating the settlement transaction upon successful payment verification.

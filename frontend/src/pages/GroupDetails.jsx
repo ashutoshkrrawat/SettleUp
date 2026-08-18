@@ -74,7 +74,7 @@ export default function GroupDetails() {
   const [paidBy, setPaidBy] = useState(currentUser?._id || '');
   const [customSplits, setCustomSplits] = useState({});
 
-  const handlePayWithRazorpay = async (splitAmount, expenseId) => {
+  const handlePayWithRazorpay = async (splitAmount, expenseId = null, settleToUser = null) => {
     try {
       const res = await paymentService.loadRazorpayScript();
       if (!res) {
@@ -94,7 +94,7 @@ export default function GroupDetails() {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency || 'INR',
-        name: 'SettleUp Payment',
+        name: 'Expense Splitter Payment',
         description: `Settling split payment of ₹${splitAmount}`,
         order_id: orderData.orderId,
         handler: async function (response) {
@@ -108,14 +108,28 @@ export default function GroupDetails() {
             });
 
             if (verifyRes.success) {
-              toast.success('🎉 Payment successful! Split settled instantly.');
-              fetchExpensesForGroup(id);
-              fetchGroupDetails(id);
+              toast.success('🎉 Payment successful! Debt settled.');
+              if (settleToUser) {
+                const targetUserId = settleToUser._id || settleToUser;
+                await addExpense({
+                  groupId: group._id,
+                  description: `Settle up: Paid ${getUserName(targetUserId)} via Razorpay`,
+                  amount: splitAmount,
+                  splitType: 'EQUAL',
+                  paidBy: currentUser._id,
+                  splits: [
+                    { user: currentUser._id, amount: 0 },
+                    { user: targetUserId, amount: splitAmount }
+                  ]
+                });
+              }
+              await fetchExpensesForGroup(id);
+              await fetchGroupDetails(id);
             } else {
               toast.error('Payment verification failed.');
             }
           } catch (err) {
-            toast.error('Payment verification failed.');
+            toast.error(err.response?.data?.message || 'Payment verification failed.');
           }
         },
         prefill: {
@@ -259,8 +273,37 @@ export default function GroupDetails() {
   };
 
   const getUserName = (userId) => {
-    const idVal = userId?._id || userId;
-    return users.find(u => u._id === idVal)?.name || (typeof userId === 'object' && userId?.name) || 'Unknown';
+    if (!userId) return 'Unknown';
+
+    // 1. Direct object name
+    if (typeof userId === 'object' && userId?.name) {
+      return userId.name;
+    }
+
+    const idStr = (userId?._id || userId).toString();
+
+    // 2. Check current group members (populated with user objects)
+    if (group?.members) {
+      const groupMember = group.members.find(m => (m?._id || m).toString() === idStr);
+      if (groupMember && typeof groupMember === 'object' && groupMember.name) {
+        return groupMember.name;
+      }
+    }
+
+    // 3. Check users state from Context
+    if (users && users.length > 0) {
+      const userMatch = users.find(u => (u?._id || u).toString() === idStr);
+      if (userMatch && userMatch.name) {
+        return userMatch.name;
+      }
+    }
+
+    // 4. Check currentUser
+    if (currentUser && currentUser._id?.toString() === idStr) {
+      return currentUser.name;
+    }
+
+    return 'Member';
   };
 
   const handleAddExpenseSubmit = async (e) => {
@@ -646,54 +689,64 @@ export default function GroupDetails() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {settlements.map((tx, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-secondary/50 border border-border/50 p-4 rounded-2xl flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">
-                            {getUserName(tx.from).charAt(0).toUpperCase()}
-                          </div>
-                          <div className="text-xs">
-                            <span className="font-bold text-foreground">{getUserName(tx.from)}</span> owes <span className="font-bold text-foreground">{getUserName(tx.to)}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-base font-black text-primary">${tx.amount.toFixed(2)}</span>
-                          {tx.from === currentUser._id && (
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handlePayWithRazorpay(tx.amount)}
-                                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-full text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
-                              >
-                                <CreditCard className="w-3.5 h-3.5" />
-                                <span>Pay Now (Razorpay/UPI)</span>
-                              </button>
-                              <button
-                                onClick={() => {
-                                  addExpense({
-                                    groupId: group._id,
-                                    description: `Settle up: Paid ${getUserName(tx.to)}`,
-                                    amount: tx.amount,
-                                    splitType: 'EQUAL',
-                                    paidBy: tx.from,
-                                    splits: [
-                                      { user: tx.from, amount: 0 },
-                                      { user: tx.to, amount: tx.amount }
-                                    ]
-                                  });
-                                  toast.success(`Settled up $${tx.amount} to ${getUserName(tx.to)}!`);
-                                }}
-                                className="px-3 py-1.5 bg-secondary border border-border/80 text-foreground font-bold rounded-full text-xs hover:bg-secondary/80 transition-opacity cursor-pointer"
-                              >
-                                Offline Settle
-                              </button>
+                    {settlements.map((tx, idx) => {
+                      const fromId = (tx.from?._id || tx.from)?.toString();
+                      const toId = (tx.to?._id || tx.to)?.toString();
+                      const isDebtor = currentUser && currentUser._id?.toString() === fromId;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="bg-secondary/50 border border-border/50 p-4 rounded-2xl flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">
+                              {getUserName(tx.from).charAt(0).toUpperCase()}
                             </div>
-                          )}
+                            <div className="text-xs">
+                              <span className="font-bold text-foreground">{getUserName(tx.from)}</span> owes <span className="font-bold text-foreground">{getUserName(tx.to)}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-base font-black text-primary">${tx.amount.toFixed(2)}</span>
+                            {isDebtor && (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handlePayWithRazorpay(tx.amount, null, tx.to)}
+                                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-full text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                                >
+                                  <CreditCard className="w-3.5 h-3.5" />
+                                  <span>Pay Now (Razorpay/UPI)</span>
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      await addExpense({
+                                        groupId: group._id,
+                                        description: `Settle up: Paid ${getUserName(tx.to)}`,
+                                        amount: tx.amount,
+                                        splitType: 'EQUAL',
+                                        paidBy: fromId,
+                                        splits: [
+                                          { user: fromId, amount: 0 },
+                                          { user: toId, amount: tx.amount }
+                                        ]
+                                      });
+                                      toast.success(`Settled up $${tx.amount} to ${getUserName(tx.to)}!`);
+                                    } catch (err) {
+                                      toast.error(err.message || 'Failed to settle up');
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-secondary border border-border/80 text-foreground font-bold rounded-full text-xs hover:bg-secondary/80 transition-opacity cursor-pointer"
+                                >
+                                  Offline Settle
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </DashboardCard>

@@ -173,11 +173,51 @@ Return ONLY valid JSON matching this schema:
 }
 
 /**
- * Takes a base64 encoded receipt image and parses it using Gemini 2.5 Flash multimodal vision input.
+ * Helper to retrieve all configured Gemini API keys (comma separated in GEMINI_API_KEY or GEMINI_API_KEYS).
+ */
+function getApiKeys() {
+    const rawKeys = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '';
+    return rawKeys
+        .split(',')
+        .map(k => k.trim())
+        .filter(k => k.length > 0);
+}
+
+/**
+ * Executes a Gemini request function against available API keys and models in rotation.
+ * Automatically retries with fallback models and next keys if one fails or hits rate limits.
+ */
+async function executeWithGeminiRotation(requestFn) {
+    const keys = getApiKeys();
+    if (keys.length === 0) {
+        throw new Error('No GEMINI_API_KEY configured on server.');
+    }
+
+    const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+    let lastError = null;
+
+    for (let i = 0; i < keys.length; i++) {
+        const apiKey = keys[i];
+        const ai = new GoogleGenAI({ apiKey });
+
+        for (const modelName of modelsToTry) {
+            try {
+                return await requestFn(ai, modelName);
+            } catch (err) {
+                console.warn(`[AI Service] Key #${i + 1} with model ${modelName} failed: ${err.message}. Trying next fallback...`);
+                lastError = err;
+            }
+        }
+    }
+    throw lastError || new Error('All Gemini API keys and models in pool failed.');
+}
+
+/**
+ * Takes a base64 encoded receipt image and parses it using Gemini multimodal vision input.
  */
 async function parseReceiptImage(base64Image, mimeType = 'image/jpeg') {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    const keys = getApiKeys();
+    if (keys.length === 0) {
         console.warn('[AI Service] GEMINI_API_KEY not set.');
         return {
             description: 'Receipt Expense',
@@ -187,8 +227,6 @@ async function parseReceiptImage(base64Image, mimeType = 'image/jpeg') {
     }
 
     try {
-        const ai = new GoogleGenAI({ apiKey });
-
         const promptText = `
 You are an AI assistant for an expense-splitting web app.
 Analyze this receipt image carefully and extract structured expense fields into JSON.
@@ -213,20 +251,22 @@ Return ONLY valid JSON matching this schema:
         let safeMime = mimeType || 'image/jpeg';
         if (safeMime === 'image/jpg') safeMime = 'image/jpeg';
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [
-                {
-                    inlineData: {
-                        mimeType: safeMime,
-                        data: cleanBase64
-                    }
-                },
-                { text: promptText }
-            ],
-            config: {
-                responseMimeType: 'application/json',
-            }
+        const response = await executeWithGeminiRotation(async (ai, modelName) => {
+            return await ai.models.generateContent({
+                model: modelName,
+                contents: [
+                    {
+                        inlineData: {
+                            mimeType: safeMime,
+                            data: cleanBase64
+                        }
+                    },
+                    { text: promptText }
+                ],
+                config: {
+                    responseMimeType: 'application/json',
+                }
+            });
         });
 
         let jsonText = (response.text || '').trim();
