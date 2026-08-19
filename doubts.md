@@ -98,3 +98,12 @@ This document serves as a repository for technical concepts, doubts, architectur
   1. **Strict Type Matching in `getUserName`**: `getUserName` was doing a strict reference equality check (`u._id === idVal`). When comparing strings vs ObjectIds, `===` returned `false`, falling back to `"Unknown"`. Updated `getUserName` to check `group.members` (which contains populated user names for the group) using `.toString()` comparison.
   2. **Debtor Identity Comparison**: Settle Up action buttons evaluated `tx.from === currentUser._id`. Comparing strict ObjectIds failed. Updated to `(tx.from?._id || tx.from)?.toString() === currentUser?._id?.toString()`.
   3. **Razorpay Net Settlement Flow**: Updated `handlePayWithRazorpay` to support net debt settlements (`settleToUser`), automatically creating the settlement transaction upon successful payment verification.
+
+### 11. Resume Optimization & LaTeX Formatting for Full-Stack AI Expense Platform
+* **Date**: 2026-08-19
+* **Context**: LaTeX Resume project bullet points.
+* **Question / Goal**: Update the resume LaTeX snippet to highlight newly implemented multimodal AI features (Gemini Vision receipt scanning, voice input), Razorpay online payment integration, greedy debt minimization, and async BullMQ queues.
+* **Key Enhancements**:
+  * Added **Google Gemini AI** and **Razorpay** to tech stack headers.
+  * Formatted bullet points using active action verbs (*Integrated*, *Engineered*, *Implemented*, *Architected*), quantifying technical specs and algorithmic complexity ($O(N \log N)$).
+  * Ensured LaTeX escape rules (`\%`, `\$`, `\textbar{}`) for clean compilation.

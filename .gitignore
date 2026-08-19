@@ -30,3 +30,8 @@ Thumbs.db
 
 # Local test coverage
 coverage/
+
+# Personal notes & dev scratchpads
+doubts.md
+todo.md
+memory.md
