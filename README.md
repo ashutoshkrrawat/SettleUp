@@ -36,10 +36,10 @@ SettleUp solves the common problem of tracking shared expenses across groups —
 - Three split modes: **Equal** (with floating-point cent correction), **Exact amounts**, and **Percentage-based** (enforces 100% sum validation)
 - Automatic group balance recalculation on every expense creation or settlement
 
-**AI-Powered Expense Entry (Google Gemini 2.5 Flash)**
-- **Voice Assistant**: Record audio or speak naturally (e.g. *"Split 1200 rupees for dinner equally in Goa Trip"*); Gemini parses the audio multimodally and pre-fills the expense form
-- **Receipt OCR**: Upload a receipt image; Gemini vision extracts the vendor name, total amount, and suggested split type automatically
-- **Fault Tolerance**: Implements API key pool rotation and multi-model fallback (`gemini-2.5-flash` -> `gemini-1.5-flash` -> `gemini-2.0-flash`) with a regex-based offline parser as a final fallback
+**Google Gemini Multimodal AI Engine**
+- **Receipt OCR & Bill Scanning**: Users can upload receipt images (JPG, PNG, WebP) directly in the UI. The Gemini API analyzes the receipt using vision capabilities, extracting the store/merchant name, the exact total transaction amount, and suggests an appropriate split type (Equal, Exact, or Percent) to eliminate manual entry.
+- **Voice Expense Assistant**: Integrates speech-to-text/audio analysis using Gemini multimodal inputs. Users can record spoken details (e.g. *"Split 1500 rupees for dinner with Goa Trip group"*), and the system automatically matches the target group, extracts the numeric value, determines the split type, and pre-fills the expense form.
+- **Resilient Fallback Pipeline**: Features API key pool rotation to handle rate limits gracefully, automatically cycles through fallback models (`gemini-2.5-flash` -> `gemini-1.5-flash` -> `gemini-2.0-flash`), and falls back to a regex-based offline parser if keys are unavailable, guaranteeing 100% service uptime.
 
 **Debt Settlement**
 - Greedy two-pointer algorithm computes the minimum number of transactions to fully settle all group debts (see [Algorithm](#the-settle-up-algorithm))
