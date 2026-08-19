@@ -1,4 +1,4 @@
-﻿# SettleUp — Real-Time Expense Splitting Platform
+# SettleUp — Real-Time Expense Splitting Platform
 
 > A production-grade, full-stack expense management application with real-time synchronization, AI-powered expense parsing, UPI payment integration, and a greedy debt-minimization algorithm.
 
@@ -69,7 +69,7 @@ This guarantees the **minimum possible number of payment transactions** — at m
 ## Architecture
 
 ```
-ExpenseSplitter/
+settleup/
 ├── server/                     # Node.js + Express.js backend
 │   ├── config/                 # MongoDB, Redis, Socket.io, BullMQ initialization
 │   ├── controllers/            # HTTP request handlers (thin layer, delegates to services)
@@ -117,8 +117,8 @@ ExpenseSplitter/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/ashutoshkrrawat/ExpenseSplitter.git
-cd ExpenseSplitter
+git clone https://github.com/ashutoshkrrawat/settleup.git
+cd settleup
 ```
 
 ### 2. Backend setup
@@ -132,7 +132,7 @@ Create a `.env` file inside `server/` using the following template:
 
 ```env
 PORT=8000
-MONGO_URI=mongodb://127.0.0.1:27017/expense-splitter
+MONGO_URI=mongodb://127.0.0.1:27017/settleup
 JWT_SECRET=your_jwt_secret_here
 JWT_EXPIRE=30d
 CLIENT_URL=http://localhost:5173

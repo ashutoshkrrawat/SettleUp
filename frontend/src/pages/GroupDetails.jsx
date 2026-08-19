@@ -94,7 +94,7 @@ export default function GroupDetails() {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency || 'INR',
-        name: 'Expense Splitter Payment',
+        name: 'SettleUp Payment',
         description: `Settling split payment of ₹${splitAmount}`,
         order_id: orderData.orderId,
         handler: async function (response) {

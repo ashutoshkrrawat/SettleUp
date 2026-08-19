@@ -20,13 +20,13 @@ const sendInviteEmailHelper = async ({ toEmail, groupName, inviteCode, senderNam
   const inviteLink = `${process.env.CLIENT_URL || 'http://localhost:5173'}/join/${inviteCode}`;
 
   const mailOptions = {
-    from: `"${senderName} via Expense Splitter" <${process.env.SMTP_USER}>`,
+    from: `"${senderName} via SettleUp" <${process.env.SMTP_USER}>`,
     to: toEmail,
-    subject: `Group Invitation: Join "${groupName}" on Expense Splitter`,
-    text: `Hello,\n\n${senderName} has invited you to join the group "${groupName}" on Expense Splitter.\n\nClick the link below to accept and join the group:\n${inviteLink}\n\nOr log in to your Expense Splitter account to view and accept pending invitations.\n\nBest regards,\nExpense Splitter Team`,
+    subject: `Group Invitation: Join "${groupName}" on SettleUp`,
+    text: `Hello,\n\n${senderName} has invited you to join the group "${groupName}" on SettleUp.\n\nClick the link below to accept and join the group:\n${inviteLink}\n\nOr log in to your SettleUp account to view and accept pending invitations.\n\nBest regards,\nSettleUp Team`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-        <h2 style="color: #4f46e5; margin-bottom: 20px;">Expense Splitter Group Invitation</h2>
+        <h2 style="color: #4f46e5; margin-bottom: 20px;">SettleUp Group Invitation</h2>
         <p>Hello,</p>
         <p><strong>${senderName}</strong> has invited you to join the group <strong>"${groupName}"</strong>.</p>
         
@@ -36,8 +36,8 @@ const sendInviteEmailHelper = async ({ toEmail, groupName, inviteCode, senderNam
           </a>
         </div>
         
-        <p style="font-size: 13px; color: #6b7280;">You can also accept this invitation from your Expense Splitter dashboard notifications.</p>
-        <p style="margin-top: 30px; font-size: 12px; color: #9ca3af;">Best regards,<br>The Expense Splitter Team</p>
+        <p style="font-size: 13px; color: #6b7280;">You can also accept this invitation from your SettleUp dashboard notifications.</p>
+        <p style="margin-top: 30px; font-size: 12px; color: #9ca3af;">Best regards,<br>The SettleUp Team</p>
       </div>
     `,
   };
@@ -162,7 +162,7 @@ const inviteUserByEmail = async ({ groupId, email, senderId }) => {
 
   const userToInvite = await User.findOne({ email: email.toLowerCase().trim() });
   if (!userToInvite) {
-    throw new Error('User with this email does not exist on Expense Splitter');
+    throw new Error('User with this email does not exist on SettleUp');
   }
 
   // Check if already a member

@@ -26,13 +26,13 @@ function initReminderWorker() {
       console.log(`[Worker] Processing job ${job.id}: Sending reminder to ${email} for group ${groupName}`);
 
       const mailOptions = {
-        from: `"${requestorName} via Expense Splitter" <${process.env.SMTP_USER}>`,
+        from: `"${requestorName} via SettleUp" <${process.env.SMTP_USER}>`,
         to: email,
         subject: `Pending payment reminder for "${groupName}"`,
-        text: `Hello,\n\nThis is a friendly reminder from ${requestorName} that you have a pending balance of $${amount.toFixed(2)} in the group "${groupName}".\n\nPlease log in to the Expense Splitter app to settle up.\n\nBest regards,\nExpense Splitter Team`,
+        text: `Hello,\n\nThis is a friendly reminder from ${requestorName} that you have a pending balance of $${amount.toFixed(2)} in the group "${groupName}".\n\nPlease log in to the SettleUp app to settle up.\n\nBest regards,\nSettleUp Team`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-            <h2 style="color: #4f46e5; margin-bottom: 20px;">Expense Splitter Settle-Up Reminder</h2>
+            <h2 style="color: #4f46e5; margin-bottom: 20px;">SettleUp Settle-Up Reminder</h2>
             <p>Hello,</p>
             <p>This is a friendly reminder from <strong>${requestorName}</strong> regarding your pending balance in the group <strong>"${groupName}"</strong>.</p>
             
@@ -42,7 +42,7 @@ function initReminderWorker() {
             </div>
 
             <p>Please log in to the app to settle up your debts.</p>
-            <p style="margin-top: 30px; font-size: 12px; color: #9ca3af;">Best regards,<br>The Expense Splitter Team</p>
+            <p style="margin-top: 30px; font-size: 12px; color: #9ca3af;">Best regards,<br>The SettleUp Team</p>
           </div>
         `,
       };
